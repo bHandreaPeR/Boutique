@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Boutique">
+<meta name="theme-color" content="#1a0a2e">
+<title>La Boutique Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a0a2e;
+  --cream: #fdf6ec;
+  --rose: #e8627a;
+  --rose-light: #fde8ec;
+  --gold: #c9963a;
+  --gold-light: #fdf0d5;
+  --sage: #4a7c6f;
+  --sage-light: #e4f0ed;
+  --lavender: #7b5ea7;
+  --lavender-light: #efe9f7;
+  --blush: #f5d0d8;
+  --surface: #fff;
+  --surface2: #faf7f4;
+  --border: rgba(26,10,46,0.1);
+  --border-med: rgba(26,10,46,0.18);
+  --text: #1a0a2e;
+  --text2: #6b5a7e;
+  --text3: #a0909c;
+  --shadow: 0 4px 24px rgba(26,10,46,0.08);
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; background: var(--ink); }
+body { font-family: 'DM Sans', sans-serif; color: var(--text); overscroll-behavior: none; }
+
+#app {
+  max-width: 430px; margin: 0 auto; height: 100dvh;
+  display: flex; flex-direction: column;
+  background: var(--cream); position: relative; overflow: hidden;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink);
+  padding: env(safe-area-inset-top, 12px) 18px 0;
+  flex-shrink: 0; position: relative; overflow: hidden;
+}
+.header::before {
+  content: ''; position: absolute; top: -40px; right: -30px;
+  width: 140px; height: 140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,150,58,0.22) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header::after {
+  content: ''; position: absolute; bottom: -20px; left: 20px;
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(232,98,122,0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.status-bar { display: flex; justify-content: space-between; color: rgba(255,255,255,0.45); font-size: 11px; padding-bottom: 6px; }
+.header-main { display: flex; align-items: flex-end; justify-content: space-between; padding-bottom: 16px; }
+.brand-name { font-family: 'Playfair Display', serif; font-size: 22px; color: #fff; line-height: 1.1; }
+.brand-name em { color: var(--gold); font-style: italic; }
+.brand-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; letter-spacing: 1.5px; text-transform: uppercase; }
+.mic-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--rose), #c94060);
+  border: none; color: #fff; font-size: 17px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 14px rgba(232,98,122,0.4); flex-shrink: 0;
+  transition: transform .15s;
+}
+.mic-btn:active { transform: scale(0.92); }
+.mic-btn.listening { background: linear-gradient(135deg,#e84040,#c02020); animation: mpulse 1s infinite; }
+@keyframes mpulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+
+/* NAV */
+.nav {
+  background: var(--ink); display: flex; align-items: stretch;
+  border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  padding: 9px 4px 10px; cursor: pointer; border: none; background: transparent;
+  font-size: 9.5px; font-family: 'DM Sans',sans-serif; letter-spacing: 0.5px;
+  text-transform: uppercase; color: rgba(255,255,255,0.3); gap: 3px;
+  position: relative; transition: color .2s;
+}
+.nav-item.active { color: var(--gold); }
+.nav-item::after {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 0; height: 2px; background: var(--gold); border-radius: 0 0 2px 2px;
+  transition: width .25s cubic-bezier(.34,1.56,.64,1);
+}
+.nav-item.active::after { width: 32px; }
+.nav-icon { font-size: 19px; line-height: 1; }
+.nav-badge {
+  position: absolute; top: 6px; right: calc(50% - 18px);
+  background: var(--rose); color: #fff; border-radius: 8px;
+  font-size: 9px; padding: 1px 4px; min-width: 14px; text-align: center;
+}
+
+/* CONTENT */
+.content { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+.section { display: none; }
+.section.active { display: block; }
+.pad { padding: 16px; }
+
+/* METRIC CARDS */
+.cards2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.mcard {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 14px; border: 1px solid var(--border); position: relative; overflow: hidden;
+}
+.mcard::after {
+  content: ''; position: absolute; bottom: -12px; right: -12px;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--card-accent, rgba(201,150,58,0.07));
+}
+.mcard-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text3); margin-bottom: 5px; }
+.mcard-val { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; }
+.pos { color: var(--sage); }
+.warn { color: var(--gold); }
+.neg { color: var(--rose); }
+
+/* SEC LABEL */
+.sec-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px;
+  color: var(--text3); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-label::before { content: ''; flex: 0 0 16px; height: 1px; background: var(--border); }
+
+/* VOICE BAR */
+.voice-bar {
+  background: linear-gradient(135deg, var(--lavender-light), var(--blush));
+  border-radius: var(--radius); padding: 11px 14px;
+  display: flex; align-items: center; gap: 10px; margin-bottom: 14px;
+  border: 1px solid rgba(123,94,167,0.15);
+}
+.voice-text { font-size: 12px; color: var(--lavender); flex: 1; line-height: 1.4; }
+
+/* BUTTONS */
+.btn {
+  height: 34px; padding: 0 14px; border-radius: 40px;
+  border: 1px solid var(--border-med); background: var(--surface);
+  color: var(--text); font-size: 12px; font-family: 'DM Sans',sans-serif;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 5px;
+  white-space: nowrap; transition: all .15s; font-weight: 500;
+}
+.btn:active { transform: scale(0.96); }
+.btn.pri { background: var(--ink); color: var(--gold); border-color: var(--ink); box-shadow: 0 3px 12px rgba(26,10,46,0.2); }
+.btn.sm { height: 28px; padding: 0 10px; font-size: 11px; }
+.btn.xs { height: 24px; padding: 0 8px; font-size: 10px; }
+.btn.danger { color: var(--rose); border-color: rgba(232,98,122,0.3); }
+
+/* PILLS */
+.pill { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 500; }
+.pill.low  { background: #fde8ec; color: #b02040; }
+.pill.ok   { background: var(--sage-light); color: var(--sage); }
+.pill.pp   { background: var(--lavender-light); color: var(--lavender); }
+.pill.cash { background: var(--sage-light); color: var(--sage); }
+.pill.upi  { background: #e8f4fd; color: #1a60a0; }
+.pill.debit { background: #fde8ec; color: #b02040; }
+.pill.card { background: var(--gold-light); color: var(--gold); }
+
+/* INVENTORY */
+.inv-layout { display: flex; min-height: calc(100dvh - 160px); }
+.cat-pane {
+  width: 72px; flex-shrink: 0; background: var(--ink);
+  display: flex; flex-direction: column; padding: 8px 0; overflow-y: auto;
+}
+.cat-btn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 11px 4px; cursor: pointer; border: none; background: transparent;
+  gap: 4px; border-left: 3px solid transparent; width: 100%; transition: all .15s;
+}
+.cat-btn.active { background: rgba(255,255,255,0.06); border-left-color: var(--gold); }
+.cat-btn-icon { font-size: 20px; }
+.cat-btn-lbl { font-size: 8.5px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; text-align: center; line-height: 1.2; }
+.cat-btn.active .cat-btn-lbl { color: var(--gold); }
+.cat-add-btn {
+  display: flex; flex-direction: column; align-items: center;
+  padding: 10px 4px; cursor: pointer; border: none; background: transparent;
+  gap: 4px; width: 100%; margin-top: auto;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.cat-add-circle {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 1.5px dashed rgba(201,150,58,0.4); color: rgba(201,150,58,0.6);
+  display: flex; align-items: center; justify-content: center; font-size: 18px;
+}
+.cat-add-lbl { font-size: 8px; color: rgba(255,255,255,0.25); text-transform: uppercase; letter-spacing: 0.5px; }
+.inv-main { flex: 1; overflow-y: auto; padding: 12px; }
+
+/* INV ROWS */
+.inv-row { display: flex; align-items: flex-start; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+.inv-row:last-child { border-bottom: none; }
+.inv-color-bar { width: 4px; border-radius: 4px; align-self: stretch; min-height: 40px; flex-shrink: 0; }
+.inv-info { flex: 1; min-width: 0; }
+.inv-name { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.inv-brand { font-size: 10px; color: var(--lavender); font-weight: 500; }
+.inv-meta { font-size: 11px; color: var(--text3); margin-top: 1px; }
+.inv-right { text-align: right; flex-shrink: 0; }
+.inv-qty { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; }
+
+/* SALES ROWS */
+.sale-row { padding: 11px 0; border-bottom: 1px solid var(--border); }
+.sale-row:last-child { border-bottom: none; }
+.sale-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.sale-name { font-size: 13px; font-weight: 500; flex: 1; }
+.sale-amt { font-size: 14px; font-weight: 500; font-family: 'Playfair Display',serif; white-space: nowrap; }
+.sale-meta { font-size: 11px; color: var(--text3); margin-top: 4px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* PENDING */
+.pending-card {
+  border-radius: var(--radius); border: 1px solid rgba(201,150,58,0.22);
+  background: linear-gradient(135deg,#fffdf5,#fdf6ec);
+  padding: 12px 14px; margin-bottom: 10px;
+}
+.pending-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.pending-title { font-size: 10px; font-weight: 500; color: var(--gold); text-transform: uppercase; letter-spacing: 0.8px; }
+.pending-amt { font-family: 'Playfair Display',serif; font-size: 17px; font-weight: 600; }
+.pending-amt.credit { color: var(--sage); }
+.pending-amt.debit { color: var(--rose); }
+.pending-meta { font-size: 11px; color: var(--text3); margin-bottom: 9px; }
+.inbox-banner {
+  background: linear-gradient(135deg,var(--ink),#2d1650);
+  border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.inbox-icon { font-size: 22px; }
+.inbox-title { font-size: 13px; font-weight: 500; color: var(--gold); margin-bottom: 1px; }
+.inbox-sub { font-size: 11px; color: rgba(255,255,255,0.38); }
+
+/* PNL */
+.pnl-box {
+  background: var(--surface); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 14px; margin-bottom: 12px;
+  position: relative; overflow: hidden;
+}
+.pnl-box-accent { position: absolute; top: 0; left: 0; width: 4px; height: 100%; }
+.pnl-box-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.8px; color: var(--text3); margin-bottom: 10px; font-weight: 500; }
+.pnl-line { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.pnl-line:last-child { border-bottom: none; }
+.pnl-label { color: var(--text2); }
+.pnl-val { font-weight: 500; }
+.pnl-total { display: flex; justify-content: space-between; font-size: 16px; font-weight: 500; padding-top: 12px; border-top: 1.5px solid var(--border-med); margin-top: 4px; }
+.pnl-total .pnl-val { font-family: 'Playfair Display',serif; font-size: 20px; }
+.bar-wrap { height: 5px; background: var(--border); border-radius: 3px; overflow: hidden; margin: 6px 0 3px; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width .6s cubic-bezier(.34,1.56,.64,1); }
+.ptabs { display: flex; gap: 4px; background: var(--surface2); border-radius: 40px; padding: 3px; margin-bottom: 14px; }
+.ptab { flex: 1; text-align: center; padding: 6px 4px; border-radius: 40px; font-size: 11px; cursor: pointer; border: none; background: transparent; color: var(--text3); font-family: 'DM Sans',sans-serif; transition: all .2s; }
+.ptab.active { background: var(--ink); color: var(--gold); font-weight: 500; }
+
+/* ACTIVITY */
+.act-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); align-items: flex-start; }
+.act-row:last-child { border-bottom: none; }
+.act-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.act-text { font-size: 12px; flex: 1; line-height: 1.4; }
+.act-time { font-size: 10px; color: var(--text3); white-space: nowrap; margin-top: 1px; }
+
+/* SHEETS */
+.sheet-overlay {
+  position: absolute; inset: 0; background: rgba(26,10,46,0.55);
+  z-index: 50; display: flex; align-items: flex-end;
+  backdrop-filter: blur(2px); animation: fadein .2s ease;
+}
+@keyframes fadein { from{opacity:0} to{opacity:1} }
+.sheet {
+  background: var(--cream); border-radius: 24px 24px 0 0;
+  padding: 14px 16px 28px; width: 100%; max-height: 90%;
+  overflow-y: auto; animation: slideup .28s cubic-bezier(.34,1.3,.64,1);
+}
+@keyframes slideup { from{transform:translateY(100%)} to{transform:translateY(0)} }
+.sheet-handle { width: 40px; height: 4px; background: var(--border-med); border-radius: 2px; margin: 0 auto 14px; }
+.sheet-title { font-family: 'Playfair Display',serif; font-size: 17px; font-weight: 600; margin-bottom: 14px; color: var(--ink); }
+.frow { margin-bottom: 10px; position: relative; }
+.frow label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 4px; font-weight: 500; }
+.frow input,.frow select,.frow textarea {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border-med); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--text); font-size: 13px;
+  font-family: 'DM Sans',sans-serif; outline: none; transition: border-color .15s;
+}
+.frow input:focus,.frow select:focus,.frow textarea:focus { border-color: var(--lavender); }
+.frow textarea { resize: vertical; min-height: 60px; }
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sactions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.search-inp {
+  width: 100%; height: 34px; padding: 0 12px;
+  border: 1px solid var(--border-med); border-radius: 40px;
+  background: var(--surface); color: var(--text); font-size: 12px;
+  font-family: 'DM Sans',sans-serif; margin-bottom: 10px; outline: none;
+}
+.empty { padding: 28px 16px; text-align: center; color: var(--text3); font-size: 13px; }
+.spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid var(--lavender); border-top-color: transparent; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 4px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.note-box { background: var(--lavender-light); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 11px; color: var(--lavender); margin-bottom: 10px; border: 1px solid rgba(123,94,167,0.15); line-height: 1.5; }
+.section-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.low-card { background: linear-gradient(135deg,#fde8ec,#fff5f7); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; border: 1px solid rgba(232,98,122,0.18); }
+
+/* SMART DROPDOWN */
+.suggestions {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
+  background: var(--surface); border: 1px solid var(--border-med);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  max-height: 150px; overflow-y: auto; box-shadow: var(--shadow);
+}
+.sugg-item { padding: 9px 12px; font-size: 13px; cursor: pointer; border-bottom: 1px solid var(--border); color: var(--text); }
+.sugg-item:last-child { border-bottom: none; }
+.sugg-item:active { background: var(--surface2); }
+.sugg-item.create { color: var(--sage); font-weight: 500; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="status-bar">
+      <span id="clock">9:41 AM</span>
+      <span>●●● WiFi 🔋</span>
+    </div>
+    <div class="header-main">
+      <div>
+        <div class="brand-name"><em>La</em> Boutique</div>
+        <div class="brand-sub" id="hdr-sub">Your business dashboard</div>
+      </div>
+      <button class="mic-btn" id="globalMic" onclick="toggleVoice()">🎙</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div id="sec-home"      class="section active"><div class="pad" id="home-pad"></div></div>
+    <div id="sec-inventory" class="section">
+      <div class="inv-layout">
+        <div class="cat-pane" id="cat-pane"></div>
+        <div class="inv-main" id="inv-main"></div>
+      </div>
+    </div>
+    <div id="sec-sales" class="section"><div class="pad" id="sales-pad"></div></div>
+    <div id="sec-pnl"   class="section"><div class="pad" id="pnl-pad"></div></div>
+  </div>
+
+  <div class="nav">
+    <button class="nav-item active" onclick="sw('home',this)">
+      <span class="nav-icon">✦</span><span>Home</span>
+    </button>
+    <button class="nav-item" onclick="sw('inventory',this)">
+      <span class="nav-icon">◈</span><span>Stock</span>
+    </button>
+    <button class="nav-item" onclick="sw('sales',this)" id="nav-sales">
+      <span class="nav-icon">◉</span><span>Sales</span>
+      <span class="nav-badge" id="inbox-badge" style="display:none">0</span>
+    </button>
+    <button class="nav-item" onclick="sw('pnl',this)">
+      <span class="nav-icon">◈</span><span>P&amp;L</span>
+    </button>
+  </div>
+</div>
+
+<script>
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+const INR   = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const tsNow = () => new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'}) + ', ' + new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const todayStr = () => new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let categories = [
+  {id:'J', icon:'💎', label:'Jewellery', color:'#7b5ea7'},
+  {id:'C', icon:'👗', label:'Clothing',  color:'#4a7c6f'},
+  {id:'B', icon:'✨', label:'Beauty',    color:'#c94060'},
+  {id:'A', icon:'👜', label:'Acc.',      color:'#c9963a'},
+];
+
+let items = [
+  {id:1, name:'Gold bangles',     brand:'Tanishq-style', cat:'J', stock:14, cost:1800, price:2800, low:5, unit:'set',    desc:'22kt gold plated, set of 2'},
+  {id:2, name:'Silver anklets',   brand:'',              cat:'J', stock:3,  cost:550,  price:950,  low:5, unit:'pair',   desc:''},
+  {id:3, name:'Silk kurta',       brand:'Fabindia',      cat:'C', stock:8,  cost:700,  price:1200, low:4, unit:'piece',  desc:'Medium, assorted colours'},
+  {id:4, name:'Rose face serum',  brand:'Plum',          cat:'B', stock:2,  cost:200,  price:480,  low:5, unit:'bottle', desc:'50ml, all skin types'},
+  {id:5, name:'Pearl earrings',   brand:'',              cat:'J', stock:11, cost:800,  price:1500, low:4, unit:'pair',   desc:''},
+  {id:6, name:'Cotton saree',     brand:'',              cat:'C', stock:6,  cost:900,  price:1800, low:3, unit:'piece',  desc:''},
+  {id:7, name:'Hair oil 100ml',   brand:'Mamaearth',     cat:'B', stock:15, cost:80,   price:180,  low:6, unit:'bottle', desc:''},
+  {id:8, name:'Oxidised necklace',brand:'',              cat:'J', stock:7,  cost:400,  price:850,  low:3, unit:'piece',  desc:''},
+];
+let nextItemId = 9;
+
+let sales = [
+  {id:1, item:'Gold bangles',  qty:2, salePrice:2800, amount:5600, cost:3600, method:'PhonePe', note:'', time:'10:30 AM, 10 Apr', type:'sale'},
+  {id:2, item:'Pearl earrings',qty:1, salePrice:1500, amount:1500, cost:800,  method:'Cash',    note:'', time:'11:15 AM, 10 Apr', type:'sale'},
+  {id:3, item:'Silk kurta',    qty:3, salePrice:1100, amount:3300, cost:2100, method:'UPI',     note:'Bulk discount', time:'2:00 PM, 9 Apr', type:'sale'},
+];
+let nextSaleId = 4;
+
+let pending = [
+  {id:'p1', rawDesc:'PhonePe Txn #PP2948',             amount:4750, type:'credit', time:'8:55 AM, 10 Apr'},
+  {id:'p2', rawDesc:'PhonePe Txn #PP2891',             amount:2200, type:'credit', time:'3:10 PM, 9 Apr'},
+  {id:'p3', rawDesc:'Market purchase – Sadar Bazaar',  amount:3500, type:'debit',  time:'11:00 AM, 8 Apr'},
+];
+
+let activity = [
+  {t:'sale',    text:'Sold 2 × Gold bangles via PhonePe', time:'10:30 AM, 10 Apr'},
+  {t:'restock', text:'Restocked 10 × Hair oil 100ml',     time:'9:00 AM, 10 Apr'},
+];
+
+// Smart dropdown pools
+let brandList = [];
+let unitList  = ['piece','pair','set','bottle','ml','gm','box','roll'];
+let descList  = [];
+let noteList  = [];
+
+function refreshLists(){
+  brandList = [...new Set(items.map(i=>i.brand).filter(Boolean))];
+  descList  = [...new Set(items.map(i=>i.desc).filter(Boolean))];
+  noteList  = [...new Set(sales.map(s=>s.note).filter(Boolean))];
+  items.forEach(i=>{ if(i.unit && !unitList.includes(i.unit)) unitList.push(i.unit); });
+}
+refreshLists();
+
+let activeCat  = 'all';
+let pnlPeriod  = 'all';
+let listening  = false;
+let recognition = null;
+
+function addAct(t,text){ activity.unshift({t,text,time:tsNow()}); if(activity.length>80) activity.pop(); }
+function catColor(id){ const c=categories.find(x=>x.id===id); return c?c.color:'#888'; }
+function catIcon(id) { const c=categories.find(x=>x.id===id); return c?c.icon:'◆'; }
+function catLabel(id){ const c=categories.find(x=>x.id===id); return c?c.label:id; }
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function sw(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  const subs={home:'Your business dashboard',inventory:'Manage your stock',sales:'Transactions & inbox',pnl:'Financial summary'};
+  document.getElementById('hdr-sub').textContent = subs[name];
+  render();
+}
+
+function render(){ renderHome(); renderInventory(); renderSales(); renderPnL(); updateBadge(); }
+
+function updateBadge(){
+  const b = document.getElementById('inbox-badge');
+  if(pending.length){ b.style.display='block'; b.textContent=pending.length; }
+  else b.style.display='none';
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  const todayTotal = sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const grossProfit = sales.filter(s=>s.type==='sale').reduce((s,x)=>s+x.amount-x.cost,0);
+  const totalStockVal = items.reduce((s,i)=>s+i.stock*i.price,0);
+  const lowItems = items.filter(i=>i.stock<=i.low);
+  document.getElementById('home-pad').innerHTML = `
+    <div class="cards2">
+      <div class="mcard" style="--card-accent:rgba(74,124,111,0.09)"><div class="mcard-label">Today's sales</div><div class="mcard-val pos">${INR(todayTotal)}</div></div>
+      <div class="mcard" style="--card-accent:rgba(74,124,111,0.09)"><div class="mcard-label">Gross profit</div><div class="mcard-val pos">${INR(grossProfit)}</div></div>
+      <div class="mcard" style="--card-accent:rgba(201,150,58,0.09)"><div class="mcard-label">Stock value</div><div class="mcard-val">${INR(totalStockVal)}</div></div>
+      <div class="mcard" style="--card-accent:rgba(232,98,122,0.09)"><div class="mcard-label">Inbox pending</div><div class="mcard-val ${pending.length?'warn':'pos'}">${pending.length}</div></div>
+    </div>
+    <div class="voice-bar">
+      <span style="font-size:18px">🎙</span>
+      <div class="voice-text" id="voice-status">Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"</div>
+    </div>
+    ${lowItems.length ? `<div class="sec-label">Low stock alerts</div>
+    <div class="low-card">${lowItems.map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(232,98,122,0.1)">
+      <span>${catIcon(i.cat)} ${i.name}</span><span style="color:#b02040;font-weight:500">${i.stock} ${i.unit} left</span>
+    </div>`).join('')}</div>` : ''}
+    ${pending.length ? `<div class="inbox-banner">
+      <span class="inbox-icon">📥</span>
+      <div><div class="inbox-title">${pending.length} transactions need attention</div>
+      <div class="inbox-sub">${pending.filter(p=>p.type==='credit').length} PhonePe · ${pending.filter(p=>p.type==='debit').length} payments</div></div>
+      <button class="btn sm" style="color:var(--gold);border-color:rgba(201,150,58,0.3);background:transparent;margin-left:auto;flex-shrink:0" onclick="sw('sales',document.querySelectorAll('.nav-item')[2])">Review →</button>
+    </div>` : ''}
+    <div class="sec-label">Recent activity</div>
+    <div>${activity.slice(0,5).map(a=>`<div class="act-row">
+      <div class="act-dot" style="background:${a.t==='sale'?'var(--sage)':a.t==='restock'?'var(--lavender)':'var(--rose)'}"></div>
+      <div class="act-text">${a.text}</div><div class="act-time">${a.time}</div>
+    </div>`).join('')}</div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn pri" onclick="sw('sales',document.querySelectorAll('.nav-item')[2]);setTimeout(openLogSale,80)">+ Log sale</button>
+      <button class="btn" onclick="sw('inventory',document.querySelectorAll('.nav-item')[1])">View stock</button>
+    </div>`;
+}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+function renderInventory(){
+  const allCats = [{id:'all',icon:'🏪',label:'All',color:'#888'}, ...categories];
+  document.getElementById('cat-pane').innerHTML =
+    allCats.map(c=>`<button class="cat-btn ${activeCat===c.id?'active':''}" onclick="setActiveCat('${c.id}')">
+      <span class="cat-btn-icon">${c.icon}</span>
+      <span class="cat-btn-lbl">${c.label}</span>
+    </button>`).join('') +
+    `<button class="cat-add-btn" onclick="openAddCategory()">
+      <div class="cat-add-circle">+</div>
+      <span class="cat-add-lbl">New</span>
+    </button>`;
+
+  const filtered = activeCat==='all' ? items : items.filter(i=>i.cat===activeCat);
+  document.getElementById('inv-main').innerHTML = `
+    <div class="section-hdr" style="position:sticky;top:0;background:var(--cream);padding:2px 0 8px;z-index:2">
+      <div><span style="font-size:13px;font-weight:500">${activeCat==='all'?'All items':catLabel(activeCat)}</span>
+      <span style="font-size:11px;color:var(--text3);margin-left:4px">(${filtered.length})</span></div>
+      <button class="btn pri sm" onclick="openAddItem()">+ Add</button>
+    </div>
+    <input class="search-inp" placeholder="🔍  Search name or brand…" oninput="filterInv(this.value)">
+    <div id="inv-rows">${invRows(filtered)}</div>`;
+}
+
+function invRows(list){
+  if(!list.length) return '<div class="empty">Nothing here yet ✦</div>';
+  return list.map(i=>`<div class="inv-row">
+    <div class="inv-color-bar" style="background:${catColor(i.cat)}"></div>
+    <div class="inv-info">
+      <div class="inv-name">${i.name}</div>
+      ${i.brand?`<div class="inv-brand">${i.brand}</div>`:''}
+      <div class="inv-meta">${INR(i.price)}/${i.unit}${i.desc?' · '+i.desc.slice(0,26):''}</div>
+    </div>
+    <div class="inv-right">
+      <div class="inv-qty">${i.stock}</div>
+      <div style="margin-top:3px">${i.stock<=i.low?'<span class="pill low">Low ⚠</span>':'<span class="pill ok">OK</span>'}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-left:6px">
+      <button class="btn xs" onclick="openQuickUpdate(${i.id})">±</button>
+      <button class="btn xs" onclick="openEditItem(${i.id})">✎</button>
+    </div>
+  </div>`).join('');
+}
+
+function setActiveCat(id){ activeCat=id; renderInventory(); }
+function filterInv(q){
+  const base = activeCat==='all' ? items : items.filter(i=>i.cat===activeCat);
+  const res = base.filter(i=>
+    i.name.toLowerCase().includes(q.toLowerCase()) ||
+    (i.brand||'').toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('inv-rows').innerHTML = invRows(res);
+}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function renderSales(){
+  const todayAmt = sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const ppAmt    = sales.filter(s=>s.method==='PhonePe').reduce((s,x)=>s+x.amount,0);
+  let html = `<div class="cards2">
+    <div class="mcard"><div class="mcard-label">Today</div><div class="mcard-val pos">${INR(todayAmt)}</div></div>
+    <div class="mcard"><div class="mcard-label">PhonePe total</div><div class="mcard-val">${INR(ppAmt)}</div></div>
+  </div>`;
+  if(pending.length){
+    html += `<div class="inbox-banner"><span class="inbox-icon">📥</span>
+      <div><div class="inbox-title">Inbox — ${pending.length} need descriptions</div>
+      <div class="inbox-sub">Tap to add details & link to inventory</div></div></div>`;
+    html += pending.map(p=>`<div class="pending-card">
+      <div class="pending-header">
+        <span class="pending-title">${p.type==='credit'?'💳 PhonePe received':'🏪 Purchase / payment'}</span>
+        <span class="pending-amt ${p.type}">${p.type==='debit'?'−':'+'}${INR(p.amount)}</span>
+      </div>
+      <div class="pending-meta">${p.rawDesc} · ${p.time}</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm pri" onclick="openMatchPending('${p.id}')">Add description &amp; match</button>
+        <button class="btn sm danger" onclick="dismissPending('${p.id}')">Dismiss</button>
+      </div>
+    </div>`).join('');
+  }
+  html += `<div class="section-hdr"><div class="sec-label" style="margin:0">Logged sales</div>
+    <button class="btn sm pri" onclick="openLogSale()">+ Log sale</button></div>`;
+  html += (sales.length ? sales.slice().reverse().map(s=>`<div class="sale-row">
+    <div class="sale-top">
+      <span class="sale-name">${s.item}${s.qty>1?' ×'+s.qty:''}</span>
+      <span class="sale-amt" style="color:${s.type==='purchase'?'var(--rose)':'var(--sage)'}">${s.type==='purchase'?'−':'+'}${INR(s.amount)}</span>
+    </div>
+    <div class="sale-meta">
+      <span class="pill ${(s.method||'').toLowerCase()==='phonepe'?'pp':(s.method||'').toLowerCase()}">${s.method}</span>
+      ${s.note?`<span>${s.note}</span>`:''}
+      <span>${s.time}</span>
+    </div>
+  </div>`).join('') : '<div class="empty">No sales logged yet</div>');
+  document.getElementById('sales-pad').innerHTML = html;
+}
+
+function dismissPending(id){ pending=pending.filter(p=>p.id!==id); render(); }
+
+function openMatchPending(id){
+  const p = pending.find(x=>x.id===id);
+  const isDebit = p.type==='debit';
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">${isDebit?'Log purchase / expense':'Match PhonePe receipt'}</div>
+    <div style="background:${isDebit?'#fde8ec':'var(--sage-light)'};border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:12px;font-size:12px;color:${isDebit?'#b02040':'var(--sage)'}">
+      ${p.rawDesc} · ${isDebit?'−':'+'}${INR(p.amount)} · ${p.time}
+    </div>
+    <div class="frow"><label>Description</label>
+      <input id="pm-desc" placeholder="${isDebit?'e.g. Bought 20 anklets from Zaveri':'e.g. Sold sarees to customer'}" autocomplete="off" oninput="showSugg('pm-desc',descList)">
+      <div class="suggestions" id="pm-desc-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Link to inventory item (optional)</label>
+      <select id="pm-item"><option value="">— none —</option>${items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}</select>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Qty</label><input id="pm-qty" type="number" value="1" min="0"></div>
+      <div class="frow"><label>Amount (₹)</label><input id="pm-amt" type="number" value="${p.amount}"></div>
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="savePending('${id}',${isDebit})">Save &amp; match</button>
+    </div>`);
+}
+
+function savePending(id, isDebit){
+  const p = pending.find(x=>x.id===id);
+  const desc   = document.getElementById('pm-desc').value.trim() || p.rawDesc;
+  const itemId = parseInt(document.getElementById('pm-item').value)||0;
+  const qty    = parseInt(document.getElementById('pm-qty').value)||1;
+  const amt    = parseInt(document.getElementById('pm-amt').value)||p.amount;
+  if(itemId){
+    const idx = items.findIndex(x=>x.id===itemId);
+    if(isDebit){ items[idx].stock += qty; addAct('restock','Restocked '+qty+' × '+items[idx].name); }
+    else{ items[idx].stock = Math.max(0, items[idx].stock-qty); }
+  }
+  const it = itemId ? items.find(x=>x.id===itemId) : null;
+  sales.push({id:nextSaleId++, item:desc, qty, salePrice:it?it.price:0, amount:amt, cost:it?it.cost*qty:0, method:isDebit?'Debit':'PhonePe', note:'', time:p.time, type:isDebit?'purchase':'sale'});
+  addAct(isDebit?'purchase':'sale',(isDebit?'Purchase: ':'Sale: ')+desc+' — '+INR(amt));
+  pending = pending.filter(x=>x.id!==id);
+  refreshLists(); closeSheet(); render();
+}
+
+function openLogSale(){
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">Log a sale ✦</div>
+    <div class="frow"><label>Item sold</label>
+      <select id="sl-item" onchange="autofill()">${items.map(i=>`<option value="${i.id}">${i.name} (${i.stock} in stock)</option>`).join('')}</select>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Quantity</label><input id="sl-qty" type="number" value="1" min="1" oninput="autofill()"></div>
+      <div class="frow"><label>Sale price / unit (₹)</label><input id="sl-price" type="number" placeholder="From inventory" oninput="calcAmt()"></div>
+    </div>
+    <div class="frow"><label>Total amount (₹)</label><input id="sl-amt" type="number" placeholder="Auto-filled — edit if needed"></div>
+    <div class="frow"><label>Payment method</label>
+      <select id="sl-method"><option>PhonePe</option><option>UPI</option><option>Cash</option><option>Card</option></select>
+    </div>
+    <div class="frow"><label>Note (customer, discount…)</label>
+      <input id="sl-note" placeholder="Optional" autocomplete="off" oninput="showSugg('sl-note',noteList)">
+      <div class="suggestions" id="sl-note-sugg" style="display:none"></div>
+    </div>
+    <div class="note-box">If you change the price here, P&amp;L uses the actual sale amount — not the inventory default.</div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="saveSale()">Save sale</button>
+    </div>`);
+  autofill();
+}
+
+function autofill(){
+  const sel=document.getElementById('sl-item');
+  const pEl=document.getElementById('sl-price');
+  const aEl=document.getElementById('sl-amt');
+  const qEl=document.getElementById('sl-qty');
+  if(!sel||!pEl) return;
+  const it=items.find(x=>x.id===parseInt(sel.value));
+  const qty=parseInt(qEl.value)||1;
+  if(it && !pEl._touched){ pEl.value=it.price; }
+  if(it){ aEl.value=(parseInt(pEl.value)||it.price)*qty; }
+}
+function calcAmt(){
+  const pEl=document.getElementById('sl-price');
+  const aEl=document.getElementById('sl-amt');
+  const qEl=document.getElementById('sl-qty');
+  if(!pEl||!aEl) return;
+  pEl._touched=true;
+  aEl.value=(parseInt(pEl.value)||0)*(parseInt(qEl.value)||1);
+}
+function saveSale(){
+  const itemId=parseInt(document.getElementById('sl-item').value);
+  const qty=parseInt(document.getElementById('sl-qty').value)||1;
+  const price=parseInt(document.getElementById('sl-price').value)||0;
+  const amt=parseInt(document.getElementById('sl-amt').value)||0;
+  const method=document.getElementById('sl-method').value;
+  const note=document.getElementById('sl-note').value.trim();
+  const it=items.find(x=>x.id===itemId); if(!it) return;
+  items[items.findIndex(x=>x.id===itemId)].stock=Math.max(0,it.stock-qty);
+  sales.push({id:nextSaleId++,item:it.name,qty,salePrice:price,amount:amt,cost:it.cost*qty,method,note,time:tsNow(),type:'sale'});
+  addAct('sale','Sold '+qty+' × '+it.name+' @ '+INR(price)+' = '+INR(amt));
+  refreshLists(); closeSheet(); render();
+}
+
+// ── P&L ───────────────────────────────────────────────────────────────────────
+function renderPnL(){
+  const saleTxns     = sales.filter(s=>s.type==='sale');
+  const purchaseTxns = sales.filter(s=>s.type==='purchase');
+  const revenue  = saleTxns.reduce((s,x)=>s+x.amount,0);
+  const cogs     = saleTxns.reduce((s,x)=>s+x.cost,0);
+  const purchases= purchaseTxns.reduce((s,x)=>s+x.amount,0);
+  const gross    = revenue - cogs;
+  const gm       = revenue ? Math.round(gross/revenue*100) : 0;
+  const byMethod = {};
+  saleTxns.forEach(s=>{ byMethod[s.method]=(byMethod[s.method]||0)+s.amount; });
+  const stockCost  = items.reduce((s,i)=>s+i.stock*i.cost,0);
+  const stockRetail= items.reduce((s,i)=>s+i.stock*i.price,0);
+  document.getElementById('pnl-pad').innerHTML = `
+    <div class="ptabs">
+      ${['today','week','month','all'].map(p=>`<button class="ptab ${pnlPeriod===p?'active':''}" onclick="setPnlPeriod('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}
+    </div>
+    <div class="pnl-box">
+      <div class="pnl-box-accent" style="background:var(--sage)"></div>
+      <div class="pnl-box-title">Income</div>
+      <div class="pnl-line"><span class="pnl-label">Total revenue</span><span class="pnl-val" style="color:var(--sage)">${INR(revenue)}</span></div>
+      ${Object.entries(byMethod).map(([m,v])=>`<div class="pnl-line"><span class="pnl-label">— ${m}</span><span class="pnl-val">${INR(v)}</span></div>`).join('')}
+    </div>
+    <div class="pnl-box">
+      <div class="pnl-box-accent" style="background:var(--rose)"></div>
+      <div class="pnl-box-title">Cost of goods sold</div>
+      <div class="pnl-line"><span class="pnl-label">Purchase cost of items sold</span><span class="pnl-val" style="color:var(--rose)">${INR(cogs)}</span></div>
+      ${purchases?`<div class="pnl-line"><span class="pnl-label">Direct market purchases</span><span class="pnl-val" style="color:var(--rose)">${INR(purchases)}</span></div>`:''}
+      <div class="bar-wrap"><div class="bar-fill" style="width:${revenue?Math.min(100,Math.round(cogs/revenue*100)):0}%;background:var(--rose)"></div></div>
+      <div style="font-size:11px;color:var(--text3)">${revenue?Math.round(cogs/revenue*100):0}% of revenue</div>
+    </div>
+    <div class="pnl-box">
+      <div class="pnl-box-accent" style="background:var(--gold)"></div>
+      <div class="pnl-box-title">Summary</div>
+      <div class="pnl-total"><span style="color:var(--text2)">Gross profit</span>
+        <span class="pnl-val" style="color:${gross>=0?'var(--sage)':'var(--rose)'}">${INR(gross)}</span>
+      </div>
+      <div class="bar-wrap" style="margin-top:10px"><div class="bar-fill" style="width:${Math.max(0,gm)}%;background:var(--sage)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Gross margin: ${gm}%</div>
+    </div>
+    <div class="pnl-box">
+      <div class="pnl-box-accent" style="background:var(--lavender)"></div>
+      <div class="pnl-box-title">Stock on hand</div>
+      <div class="pnl-line"><span class="pnl-label">At cost price</span><span class="pnl-val">${INR(stockCost)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">At retail price</span><span class="pnl-val">${INR(stockRetail)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">Unrealised margin</span><span class="pnl-val" style="color:var(--sage)">${INR(stockRetail-stockCost)}</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:4px 0 12px">Based on actual sale prices · Add operating costs for full P&amp;L</div>`;
+}
+function setPnlPeriod(p){ pnlPeriod=p; renderPnL(); }
+
+// ── ITEM FORMS ────────────────────────────────────────────────────────────────
+function itemFormHTML(i){
+  const isEdit = !!i;
+  return `<div class="fgrid">
+    <div class="frow" style="grid-column:1/-1"><label>Item name</label>
+      <input id="f-name" value="${i?i.name:''}" placeholder="e.g. Gold bangle">
+    </div>
+    <div class="frow"><label>Brand</label>
+      <input id="f-brand" value="${i&&i.brand?i.brand:''}" placeholder="e.g. Fabindia" autocomplete="off" oninput="showSugg('f-brand',brandList)">
+      <div class="suggestions" id="f-brand-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Category</label>
+      <select id="f-cat">${categories.map(c=>`<option value="${c.id}" ${i&&i.cat===c.id?'selected':''}>${c.icon} ${c.label}</option>`).join('')}</select>
+    </div>
+    <div class="frow"><label>Unit</label>
+      <input id="f-unit" value="${i?i.unit:'piece'}" placeholder="piece / set / ml" autocomplete="off" oninput="showSugg('f-unit',unitList)">
+      <div class="suggestions" id="f-unit-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Stock qty</label><input id="f-stock" type="number" value="${i?i.stock:0}" min="0"></div>
+    <div class="frow"><label>Cost price (₹)</label><input id="f-cost" type="number" value="${i?i.cost:0}" min="0"></div>
+    <div class="frow"><label>Selling price (₹)</label><input id="f-price" type="number" value="${i?i.price:0}" min="0"></div>
+    <div class="frow"><label>Low stock alert at</label><input id="f-low" type="number" value="${i?i.low:5}" min="1"></div>
+  </div>
+  <div class="frow"><label>Description / notes</label>
+    <input id="f-desc" value="${i&&i.desc?i.desc:''}" placeholder="Colour, size, supplier info…" autocomplete="off" oninput="showSugg('f-desc',descList)">
+    <div class="suggestions" id="f-desc-sugg" style="display:none"></div>
+  </div>
+  <div class="sactions">
+    ${isEdit?`<button class="btn danger" onclick="deleteItem(${i.id})">Delete</button>`:''}
+    <button class="btn" onclick="closeSheet()">Cancel</button>
+    <button class="btn pri" onclick="saveItem(${isEdit?i.id:'null'})">Save</button>
+  </div>`;
+}
+
+function openAddItem(){
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Add new item ✦</div>${itemFormHTML(null)}`);
+}
+function openEditItem(id){
+  const i = items.find(x=>x.id===id);
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Edit — ${i.name}</div>${itemFormHTML(i)}`);
+}
+function saveItem(idOrNull){
+  const name = document.getElementById('f-name').value.trim(); if(!name) return;
+  const obj = {
+    name, brand: document.getElementById('f-brand').value.trim(),
+    cat:   document.getElementById('f-cat').value,
+    unit:  document.getElementById('f-unit').value || 'piece',
+    stock: parseInt(document.getElementById('f-stock').value)||0,
+    cost:  parseInt(document.getElementById('f-cost').value)||0,
+    price: parseInt(document.getElementById('f-price').value)||0,
+    low:   parseInt(document.getElementById('f-low').value)||5,
+    desc:  document.getElementById('f-desc').value.trim(),
+  };
+  if(idOrNull !== null && idOrNull !== undefined && idOrNull !== 'null'){
+    const idx = items.findIndex(x=>x.id===parseInt(idOrNull));
+    items[idx] = {...items[idx], ...obj};
+    addAct('edit','Updated: '+obj.name);
+  } else {
+    obj.id = nextItemId++; items.push(obj);
+    addAct('restock','Added new: '+obj.name);
+  }
+  refreshLists(); closeSheet(); render();
+}
+function deleteItem(id){
+  const i = items.find(x=>x.id===id);
+  items = items.filter(x=>x.id!==id);
+  addAct('edit','Removed: '+i.name);
+  refreshLists(); closeSheet(); render();
+}
+
+function openQuickUpdate(id){
+  const i = items.find(x=>x.id===id);
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">Update stock</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${catIcon(i.cat)} ${i.name} — currently ${i.stock} ${i.unit}</div>
+    <div class="frow"><label>Action</label>
+      <select id="qa"><option value="sell">Sold / used</option><option value="add">Received / restocked</option><option value="set">Set exact qty</option></select>
+    </div>
+    <div class="frow"><label>Quantity</label><input id="qq" type="number" value="1" min="0"></div>
+    <div class="frow"><label>Note (optional)</label>
+      <input id="qn" placeholder="e.g. festival sale, breakage" autocomplete="off" oninput="showSugg('qn',noteList)">
+      <div class="suggestions" id="qn-sugg" style="display:none"></div>
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="applyQuick(${id})">Apply</button>
+    </div>`);
+}
+function applyQuick(id){
+  const idx=items.findIndex(x=>x.id===id); const i=items[idx];
+  const action=document.getElementById('qa').value;
+  const qty=parseInt(document.getElementById('qq').value)||1;
+  const note=document.getElementById('qn').value;
+  if(action==='sell'){ items[idx].stock=Math.max(0,i.stock-qty); addAct('sale','Used '+qty+' × '+i.name+(note?' ('+note+')':'')); }
+  else if(action==='add'){ items[idx].stock=i.stock+qty; addAct('restock','Restocked '+qty+' × '+i.name+(note?' ('+note+')':'')); }
+  else{ items[idx].stock=qty; addAct('edit','Set '+i.name+' to '+qty); }
+  refreshLists(); closeSheet(); render();
+}
+
+// ── ADD CATEGORY ──────────────────────────────────────────────────────────────
+function openAddCategory(){
+  const emojis=['🌸','💄','🧣','🪡','🛍','🌿','🧴','🪞','💍','🧸','🌺','🎀','👒','🧤','🫧','🪷'];
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">New category</div>
+    <div class="frow"><label>Category name</label><input id="nc-name" placeholder="e.g. Hair care"></div>
+    <div class="frow"><label>Icon</label>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+        ${emojis.map(e=>`<button onclick="document.getElementById('nc-icon').value='${e}';document.querySelectorAll('.ep').forEach(b=>b.style.outline='none');this.style.outline='2px solid var(--lavender)'" class="ep" style="font-size:20px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer">${e}</button>`).join('')}
+      </div>
+      <input id="nc-icon" value="🌸" style="width:60px;text-align:center;font-size:17px">
+    </div>
+    <div class="frow"><label>Colour</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        ${['#7b5ea7','#4a7c6f','#c94060','#c9963a','#185fa5','#1a7a5a','#8a3a52','#b07030'].map(c=>`<div onclick="document.getElementById('nc-color').value='${c}';document.querySelectorAll('.cdot').forEach(d=>d.style.outline='none');this.style.outline='2.5px solid var(--ink)'" class="cdot" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer"></div>`).join('')}
+      </div>
+      <input id="nc-color" value="#7b5ea7" placeholder="#hex">
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="saveNewCategory()">Add category</button>
+    </div>`);
+}
+function saveNewCategory(){
+  const name=document.getElementById('nc-name').value.trim(); if(!name) return;
+  const icon=document.getElementById('nc-icon').value||'◆';
+  const color=document.getElementById('nc-color').value||'#888';
+  const id=name.slice(0,3).toUpperCase().replace(/\s/g,'')+Date.now().toString().slice(-3);
+  categories.push({id,icon,label:name,color});
+  closeSheet(); renderInventory();
+}
+
+// ── SMART DROPDOWNS ───────────────────────────────────────────────────────────
+function showSugg(inputId, list){
+  const input = document.getElementById(inputId);
+  const sugg  = document.getElementById(inputId+'-sugg');
+  if(!input||!sugg) return;
+  const val = input.value.trim().toLowerCase();
+  const filtered = list.filter(v=>v.toLowerCase().includes(val) && v!==input.value);
+  const showCreate = val && !list.some(v=>v.toLowerCase()===val);
+  let html = filtered.slice(0,6).map(v=>`<div class="sugg-item" onmousedown="pickSugg('${inputId}','${v.replace(/'/g,"\\'").replace(/"/g,'\\"')}')">${v}</div>`).join('');
+  if(showCreate) html += `<div class="sugg-item create" onmousedown="pickSugg('${inputId}','${val.replace(/'/g,"\\'").replace(/"/g,'\\"')}')">✦ Create "${val}"</div>`;
+  if(html){ sugg.innerHTML=html; sugg.style.display='block'; }
+  else sugg.style.display='none';
+  input.onblur = ()=>setTimeout(()=>{ sugg.style.display='none'; },150);
+}
+function pickSugg(inputId, val){
+  const input = document.getElementById(inputId);
+  if(input){ input.value=val; }
+  const sugg = document.getElementById(inputId+'-sugg');
+  if(sugg) sugg.style.display='none';
+  if(inputId==='f-brand' && !brandList.includes(val)) brandList.push(val);
+  if(inputId==='f-unit'  && !unitList.includes(val))  unitList.push(val);
+  if(inputId==='f-desc'  && !descList.includes(val))  descList.push(val);
+  if((inputId==='sl-note'||inputId==='qn'||inputId==='pm-desc') && !noteList.includes(val)) noteList.push(val);
+}
+
+// ── SHEETS ────────────────────────────────────────────────────────────────────
+function showSheet(html){
+  closeSheet();
+  const bg=document.createElement('div'); bg.className='sheet-overlay'; bg.id='active-sheet';
+  const sh=document.createElement('div'); sh.className='sheet'; sh.innerHTML=html;
+  bg.appendChild(sh); document.getElementById('app').appendChild(bg);
+}
+function closeSheet(){ const el=document.getElementById('active-sheet'); if(el) el.remove(); }
+
+// ── VOICE ─────────────────────────────────────────────────────────────────────
+const VOICE_PATTERNS=[
+  {re:/sold?\s+(\d+)\s+(.+?)(?:\s+via\s+(.+?))?$/i,         action:'sell'},
+  {re:/sell\s+(\d+)\s+(.+)/i,                                action:'sell'},
+  {re:/customer\s+(?:bought|took)\s+(\d+)\s+(.+)/i,          action:'sell'},
+  {re:/(?:received?|restocked?|got|added?)\s+(\d+)\s+(.+)/i, action:'restock'},
+  {re:/(\d+)\s+(.+?)\s+(?:received|arrived)/i,               action:'restock'},
+];
+
+function localSimilarity(query,target){
+  const qw=query.toLowerCase().split(/\s+/);
+  let hits=0;
+  for(const w of qw){ if(target.toLowerCase().includes(w) && w.length>2) hits++; }
+  return hits/Math.max(qw.length,1);
+}
+function guessMethod(s){
+  if(!s) return 'Cash';
+  if(/phone\s*pe|pp/i.test(s)) return 'PhonePe';
+  if(/upi|gpay|paytm|google/i.test(s)) return 'UPI';
+  if(/card/i.test(s)) return 'Card';
+  return 'Cash';
+}
+function matchVoiceLocally(t){
+  for(const pat of VOICE_PATTERNS){
+    const m=t.match(pat.re);
+    if(m){
+      const qty=parseInt(m[1]);
+      const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');
+      const method=(m[3]||'').trim();
+      const best=items.map(i=>({i,s:localSimilarity(name,i.name)})).sort((a,b)=>b.s-a.s)[0];
+      if(best && best.s>0.25) return {action:pat.action, item:best.i, qty, method:guessMethod(method)};
+    }
+  }
+  return null;
+}
+
+function applyVoiceResult({action,item,qty,method}){
+  const idx=items.findIndex(x=>x.id===item.id);
+  if(action==='sell'){
+    items[idx].stock=Math.max(0,item.stock-qty);
+    const amt=item.price*qty;
+    sales.push({id:nextSaleId++,item:item.name,qty,salePrice:item.price,amount:amt,cost:item.cost*qty,method:method||'Cash',note:'via voice',time:tsNow(),type:'sale'});
+    addAct('sale','Voice: sold '+qty+' × '+item.name+' = '+INR(amt));
+    setVS('✓ Sold '+qty+' × '+item.name+' — '+INR(amt));
+  } else {
+    items[idx].stock=item.stock+qty;
+    addAct('restock','Voice: restocked '+qty+' × '+item.name);
+    setVS('✓ Restocked '+qty+' × '+item.name);
+  }
+  refreshLists(); render();
+  setTimeout(()=>setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"'),4000);
+}
+
+async function toggleVoice(){
+  if(listening){ if(recognition) recognition.stop(); return; }
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert('Voice recognition works on Chrome or Safari. Please open this app in your phone browser.'); return; }
+  recognition=new SR(); recognition.lang='en-IN'; recognition.continuous=false; recognition.interimResults=false;
+  recognition.onstart=()=>{ listening=true; document.getElementById('globalMic').classList.add('listening'); setVS('<span class="spinner"></span> Listening…'); };
+  recognition.onresult=async(e)=>{
+    const t=e.results[0][0].transcript;
+    document.getElementById('globalMic').classList.remove('listening'); listening=false;
+    setVS('<span class="spinner"></span> Heard: "'+t+'" — matching…');
+    const local=matchVoiceLocally(t);
+    if(local){ applyVoiceResult(local); return; }
+    try{
+      const names=items.map(i=>i.name+' (id:'+i.id+')').join(', ');
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+          messages:[{role:'user',content:`Inventory: ${names}. Voice: "${t}". Return ONLY JSON: {"action":"sell|restock|set|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]})});
+      const data=await resp.json();
+      const raw=data.content.map(c=>c.text||'').join('');
+      const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      if(result.action==='unknown'){ setVS('Could not understand. Try: "sold 3 earrings" or "received 20 kurtas"'); return; }
+      const it=items.find(x=>x.id===result.itemId);
+      if(!it){ setVS('Item not found. Try again.'); return; }
+      applyVoiceResult({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash'});
+    } catch(err){ setVS('Voice matched locally failed. Log manually if needed.'); }
+  };
+  recognition.onerror=()=>{ listening=false; document.getElementById('globalMic').classList.remove('listening'); };
+  recognition.onend=()=>{ listening=false; document.getElementById('globalMic').classList.remove('listening'); };
+  recognition.start();
+}
+function setVS(msg){ const el=document.getElementById('voice-status'); if(el) el.innerHTML=msg; }
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+setInterval(()=>{
+  const cl=document.getElementById('clock');
+  if(cl) cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+},30000);
+
+render();
+</script>
+</body>
+</html>
