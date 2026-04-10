@@ -749,9 +749,32 @@ const VP=[
   {re:/(?:received?|restocked?|got|added?)\s+(\d+)\s+(.+)/i,  action:'restock'},
   {re:/(\d+)\s+(.+?)\s+(?:received|arrived|came\s*in)/i,      action:'restock'},
 ];
-function lsim(q,t){const qw=q.toLowerCase().split(/\s+/);let h=0;for(const w of qw){if(t.toLowerCase().includes(w)&&w.length>2)h++;}return h/Math.max(qw.length,1);}
+function lsim(query,itemName){
+  // Check how many words from the spoken name appear in the item name and vice versa
+  const qw=query.toLowerCase().split(/\s+/).filter(w=>w.length>1);
+  const iw=itemName.toLowerCase().split(/\s+/).filter(w=>w.length>1);
+  const inItem=qw.filter(w=>itemName.toLowerCase().includes(w)).length;
+  const inQuery=iw.filter(w=>query.toLowerCase().includes(w)).length;
+  const scoreA=inItem/Math.max(qw.length,1);
+  const scoreB=inQuery/Math.max(iw.length,1);
+  return Math.max(scoreA,scoreB);
+}
 function gMethod(s){if(!s)return'Cash';if(/phone\s*pe|pp/i.test(s))return'PhonePe';if(/upi|gpay|paytm/i.test(s))return'UPI';if(/card/i.test(s))return'Card';return'Cash';}
-function matchLocal(t){for(const pat of VP){const m=t.match(pat.re);if(m){const qty=parseInt(m[1]);const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');const method=(m[3]||'').trim();const best=items.map(i=>({i,s:lsim(name,i.name)})).sort((a,b)=>b.s-a.s)[0];if(best&&best.s>0.25)return{action:pat.action,item:best.i,qty,method:gMethod(method)};}}return null;}
+function matchLocal(t){
+  for(const pat of VP){
+    const m=t.match(pat.re);
+    if(m){
+      const qty=parseInt(m[1]);
+      const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');
+      const method=(m[3]||'').trim();
+      const scored=items.map(i=>({i,s:lsim(name,i.name)})).sort((a,b)=>b.s-a.s);
+      const best=scored[0];
+      // Lower threshold: 0.15 catches partial matches like "silk saree" → "Cotton saree"
+      if(best&&best.s>0.15)return{action:pat.action,item:best.i,qty,method:gMethod(method)};
+    }
+  }
+  return null;
+}
 
 function showVoiceConfirm(payload){
   // payload: {action, item, qty, method, transcript}
@@ -845,22 +868,74 @@ async function toggleVoice(){
     if(local){showVoiceConfirm({...local,transcript:t});setVS('Is this right? ↓');return;}
     try{
       const names=items.map(i=>i.name+' (id:'+i.id+')').join(', ');
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,
           messages:[{role:'user',content:`Inventory: ${names}. Voice command: "${t}". Return ONLY JSON: {"action":"sell|restock|set|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]})});
       const data=await resp.json();
       const raw=data.content.map(c=>c.text||'').join('');
       const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
-      if(result.action==='unknown'){setVS('Could not understand. Try: "sold 3 earrings" or "received 20 kurtas"');return;}
+      if(result.action==='unknown'){openVoiceFallback(t);return;}
       const it=items.find(x=>x.id===result.itemId);
-      if(!it){setVS('Item not found. Check spelling and try again.');return;}
+      if(!it){openVoiceFallback(t);return;}
       showVoiceConfirm({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash',transcript:t});
       setVS('Is this right? ↓');
-    }catch(err){setVS('Log manually if needed — tap + Log sale.');}};
+    }catch(err){
+      // API failed — try best-guess fallback from transcript alone
+      console.warn('API error:',err);
+      openVoiceFallback(t);
+    }};
 
   // FIX: wrap start() in try-catch for permission errors on some devices
   try{recognition.start();}
   catch(err){stopListening();setVS('Mic blocked. Check browser permissions.');}}
+
+// ── VOICE FALLBACK: prefilled form when AI can't match ────────────────────────
+function openVoiceFallback(transcript){
+  setVS('Could not match — fill in below ↓');
+  // Try to guess action from transcript
+  const isRestock=/receiv|restock|got|added|arrived|came in/i.test(transcript);
+  const action=isRestock?'restock':'sell';
+  // Try to find closest item by any word overlap
+  const best=items.map(i=>({i,s:lsim(transcript,i.name)})).sort((a,b)=>b.s-a.s)[0];
+  const guessItemId=best&&best.s>0?best.i.id:items[0]?.id||0;
+  // Try to find a qty number in transcript
+  const numMatch=transcript.match(/(\d+)/);
+  const guessQty=numMatch?parseInt(numMatch[1]):1;
+
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">Heard: "${transcript}"</div>
+    <div class="note-box" style="font-size:12px">I heard you but wasn't sure which item. Please confirm the details below:</div>
+    <div class="frow"><label>What happened?</label>
+      <select id="vf-action">
+        <option value="sell" ${action==='sell'?'selected':''}>🛍 Sold</option>
+        <option value="restock" ${action==='restock'?'selected':''}>📦 Restocked</option>
+      </select>
+    </div>
+    <div class="frow"><label>Item</label>
+      <select id="vf-item">${items.map(i=>`<option value="${i.id}" ${i.id===guessItemId?'selected':''}>${i.name} (${i.stock} in stock)</option>`).join('')}</select>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Quantity</label><input id="vf-qty" type="number" value="${guessQty}" min="1"></div>
+      <div class="frow"><label>Payment</label>
+        <select id="vf-method"><option>Cash</option><option>PhonePe</option><option>UPI</option><option>Card</option></select>
+      </div>
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet();_voiceMsg='';setVS('Tap the mic to try again')">Cancel</button>
+      <button class="btn pri" onclick="saveVoiceFallback()">Save ✓</button>
+    </div>`);
+}
+
+function saveVoiceFallback(){
+  const action=document.getElementById('vf-action').value;
+  const itemId=parseInt(document.getElementById('vf-item').value);
+  const qty=parseInt(document.getElementById('vf-qty').value)||1;
+  const method=document.getElementById('vf-method').value;
+  const it=items.find(x=>x.id===itemId);
+  if(!it)return;
+  applyVoice({action,item:it,qty,method});
+  closeSheet();
+}
 
 function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
 function setVS(msg){_voiceMsg=msg;const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
