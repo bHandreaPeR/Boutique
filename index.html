@@ -274,7 +274,7 @@ function refreshLists(){
 }
 refreshLists();
 
-let activeCat='all', pnlPeriod='all', listening=false, recognition=null;
+let activeCat='all', pnlPeriod='all', listening=false, recognition=null, voiceTimeout=null;
 function addAct(t,text){activity.unshift({t,text,time:tsNow()});if(activity.length>80)activity.pop();}
 function catColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#888';}
 function catIcon(id) {const c=categories.find(x=>x.id===id);return c?c.icon:'◆';}
@@ -767,46 +767,118 @@ function handleMicTap(){
   toggleVoice();}
 
 async function toggleVoice(){
-  if(listening){if(recognition)recognition.stop();return;}
+  // If already listening — stop immediately and bail
+  if(listening){
+    clearTimeout(voiceTimeout);
+    try{if(recognition)recognition.abort();}catch(e){}
+    stopListening();
+    setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"');
+    return;}
+
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){handleMicTap();return;}
-  recognition=new SR();recognition.lang='en-IN';recognition.continuous=false;recognition.interimResults=false;
-  recognition.onstart=()=>{listening=true;document.getElementById('globalMic').classList.add('listening');setVS('<span class="spinner"></span> Listening…');};
+
+  // Guard: don't stack multiple recognitions
+  try{if(recognition)recognition.abort();}catch(e){}
+  recognition=new SR();
+  recognition.lang='en-IN';
+  recognition.continuous=false;
+  recognition.interimResults=false;
+  recognition.maxAlternatives=1;
+
+  let resultHandled=false;
+
+  recognition.onstart=()=>{
+    listening=true;
+    document.getElementById('globalMic').classList.add('listening');
+    setVS('<span class="spinner"></span> Listening… (tap mic to stop)');
+    // Hard 8-second kill-switch so it never hangs
+    voiceTimeout=setTimeout(()=>{
+      if(listening){
+        try{recognition.abort();}catch(e){}
+        stopListening();
+        setVS('Timed out. Try again and speak clearly.');
+      }
+    },8000);
+  };
+
   recognition.onerror=(e)=>{
+    clearTimeout(voiceTimeout);
     stopListening();
     if(e.error==='not-allowed'||e.error==='permission-denied'){
-      setVS('Mic access denied. Allow microphone in Settings → Safari → Microphone.');
+      setVS('Mic blocked — allow microphone in Settings → Safari → Microphone.');
     }else if(e.error==='no-speech'){
-      setVS('Nothing heard. Try speaking clearly and try again.');
+      setVS('Nothing heard — tap mic and speak clearly.');
+    }else if(e.error==='aborted'){
+      // User tapped stop — no message needed, already reset above
     }else{
-      setVS('Could not start mic. Try again.');
-    }};
-  recognition.onend=()=>stopListening();
-  recognition.onresult=async(e)=>{
-    const t=e.results[0][0].transcript;
+      setVS('Mic error. Try again.');
+    }
+  };
+
+  recognition.onend=()=>{
+    clearTimeout(voiceTimeout);
     stopListening();
-    setVS('<span class="spinner"></span> Heard: "'+t+'" — matching…');
+  };
+
+  recognition.onresult=async(e)=>{
+    if(resultHandled)return;
+    resultHandled=true;
+    clearTimeout(voiceTimeout);
+    try{recognition.abort();}catch(err){}
+    stopListening();
+
+    const t=e.results[0][0].transcript.trim();
+    if(!t){setVS('Nothing heard — tap mic and try again.');return;}
+
+    setVS('⚡ Heard: "'+t+'" — matching…');
+
+    // Try local fast match first (no network needed)
     const local=matchLocal(t);
     if(local){applyVoice(local);return;}
+
+    // Fallback to AI only if local fails
     try{
       const names=items.map(i=>i.name+' (id:'+i.id+')').join(', ');
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
-          messages:[{role:'user',content:`Inventory: ${names}. Voice command: "${t}". Return ONLY JSON: {"action":"sell|restock|set|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]})});
+      const ctrl=new AbortController();
+      const aiTimeout=setTimeout(()=>ctrl.abort(),6000); // 6s max for AI
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        signal:ctrl.signal,
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-haiku-4-5-20251001', // Use Haiku — much faster for simple parsing
+          max_tokens:120,
+          messages:[{role:'user',content:`Inventory items: ${names}\nVoice: "${t}"\nReturn ONLY JSON no markdown: {"action":"sell|restock|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]
+        })
+      });
+      clearTimeout(aiTimeout);
       const data=await resp.json();
-      const raw=data.content.map(c=>c.text||'').join('');
-      const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
-      if(result.action==='unknown'){setVS('Could not understand. Try: "sold 3 earrings" or "received 20 kurtas"');return;}
+      const raw=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
+      const result=JSON.parse(raw);
+      if(result.action==='unknown'||!result.itemId){
+        setVS('Not sure what you meant. Try: "sold 2 earrings" or "got 10 bangles"');
+        return;
+      }
       const it=items.find(x=>x.id===result.itemId);
-      if(!it){setVS('Item not found. Check spelling and try again.');return;}
+      if(!it){setVS('Item not found in inventory.');return;}
       applyVoice({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash'});
-    }catch(err){setVS('Log manually if needed — tap + Log sale.');}};
+    }catch(err){
+      if(err.name==='AbortError'){setVS('AI took too long — log manually via + Log sale.');}
+      else{setVS('Could not match. Try: "sold 2 bangles" or "restocked 10 kurtas"');}
+    }
+  };
 
-  // FIX: wrap start() in try-catch for permission errors on some devices
   try{recognition.start();}
-  catch(err){stopListening();setVS('Mic blocked. Check browser permissions.');}}
+  catch(err){stopListening();setVS('Mic blocked — check browser permissions.');}
+}
 
-function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
+function stopListening(){
+  listening=false;
+  clearTimeout(voiceTimeout);
+  const m=document.getElementById('globalMic');
+  if(m)m.classList.remove('listening');
+}
 function setVS(msg){const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
 
 // ── CLOCK ─────────────────────────────────────────────────────────────────────
