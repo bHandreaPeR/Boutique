@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Beauty & Beads">
+<meta name="theme-color" content="#1a0a2e">
+<title>Beauty & Beads Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a0a2e;--cream:#fdf6ec;--rose:#e8627a;--rose-light:#fde8ec;--gold:#c9963a;--gold-light:#fdf0d5;--sage:#4a7c6f;--sage-light:#e4f0ed;--lavender:#7b5ea7;--lavender-light:#efe9f7;--blush:#f5d0d8;--surface:#fff;--surface2:#faf7f4;--border:rgba(26,10,46,.09);--border-med:rgba(26,10,46,.16);--text:#1a0a2e;--text2:#6b5a7e;--text3:#a0909c;--radius:14px;--radius-sm:9px;--tr:.22s cubic-bezier(.4,0,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#111}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);overscroll-behavior:none}
+#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--cream);position:relative;overflow:hidden}
+.header{background:var(--ink);padding:env(safe-area-inset-top,14px) 18px 0;flex-shrink:0;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,.18) 0%,transparent 68%);pointer-events:none}
+.header::after{content:'';position:absolute;bottom:-24px;left:10px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(232,98,122,.15) 0%,transparent 70%);pointer-events:none}
+.status-bar{display:flex;justify-content:space-between;color:rgba(255,255,255,.4);font-size:11px;padding-bottom:6px}
+.header-main{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:16px}
+.brand-name{font-family:'Fraunces',Georgia,serif;font-size:20px;color:#fff;line-height:1.1}
+.brand-name em{color:var(--gold);font-style:italic}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
+.mic-btn{width:38px;height:38px;border-radius:50%;background:var(--rose);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(232,98,122,.38);flex-shrink:0;transition:transform var(--tr),box-shadow var(--tr);position:relative;-webkit-appearance:none}
+.mic-btn:active{transform:scale(.9)}
+.mic-btn.listening{background:#e84040;animation:mic-ring 1.2s infinite}
+@keyframes mic-ring{0%{box-shadow:0 0 0 0 rgba(232,64,64,.5)}70%{box-shadow:0 0 0 12px rgba(232,64,64,0)}100%{box-shadow:0 0 0 0 rgba(232,64,64,0)}}
+.safari-banner{background:#c9963a;color:#fff;font-size:12px;font-weight:600;padding:8px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
+.safari-banner span{flex:1;line-height:1.4}
+.nav{background:var(--ink);display:flex;align-items:stretch;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 3px 10px;cursor:pointer;border:none;background:transparent;font-size:9px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.28);gap:3px;position:relative;transition:color var(--tr)}
+.nav-item.active{color:var(--gold)}
+.nav-bar{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--gold);border-radius:0 0 3px 3px;transition:width .3s cubic-bezier(.34,1.56,.64,1)}
+.nav-item.active .nav-bar{width:26px}
+.nav-icon{font-size:17px;line-height:1}
+.nav-badge{position:absolute;top:5px;right:calc(50% - 17px);background:var(--rose);color:#fff;border-radius:8px;font-size:9px;padding:1px 4px;min-width:14px;text-align:center;font-weight:600}
+.content{flex:1;overflow:hidden;position:relative}
+.section{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;transform:translateY(8px);transition:opacity var(--tr),transform var(--tr);pointer-events:none}
+.section.active{opacity:1;transform:translateY(0);pointer-events:auto}
+.pad{padding:16px}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.mcard{background:var(--surface);border-radius:var(--radius);padding:13px 14px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform var(--tr)}
+.mcard:active{transform:scale(.97)}
+.mcard-dot{position:absolute;bottom:-14px;right:-14px;width:56px;height:56px;border-radius:50%;background:var(--ca,rgba(201,150,58,.07))}
+.mcard-label{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.mcard-val{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+.pos{color:var(--sage)}.warn{color:var(--gold)}.neg{color:var(--rose)}
+.sec-label{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--text3);margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';flex:0 0 12px;height:1px;background:var(--border-med)}
+.voice-bar{background:linear-gradient(135deg,#f0eafe,#fae8ee);border-radius:var(--radius);padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:14px;border:1px solid rgba(123,94,167,.12)}
+.voice-text{font-size:12px;color:var(--lavender);flex:1;line-height:1.5;font-weight:500}
+.btn{height:32px;padding:0 13px;border-radius:40px;border:1px solid var(--border-med);background:var(--surface);color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500;transition:transform .12s,background .15s;-webkit-appearance:none}
+.btn:active{transform:scale(.94)}
+.btn.pri{background:var(--ink);color:var(--gold);border-color:var(--ink);box-shadow:0 2px 10px rgba(26,10,46,.18)}
+.btn.sm{height:27px;padding:0 10px;font-size:11px}
+.btn.xs{height:23px;padding:0 8px;font-size:10px}
+.btn.danger{color:var(--rose);border-color:rgba(232,98,122,.28)}
+.pill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
+.pill.low{background:#fde8ec;color:#b02040}.pill.ok{background:var(--sage-light);color:var(--sage)}
+.pill.pp{background:var(--lavender-light);color:var(--lavender)}.pill.cash{background:var(--sage-light);color:var(--sage)}
+.pill.upi{background:#e0f0fc;color:#1a60a0}.pill.debit{background:#fde8ec;color:#b02040}.pill.card{background:var(--gold-light);color:var(--gold)}
+.inv-layout{display:flex;height:100%;min-height:calc(100dvh - 165px)}
+.cat-pane{width:66px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;padding:6px 0;overflow-y:auto}
+.cat-btn{display:flex;flex-direction:column;align-items:center;padding:10px 3px;cursor:pointer;border:none;background:transparent;gap:4px;border-left:3px solid transparent;width:100%;transition:background var(--tr),border-color var(--tr)}
+.cat-btn.active{background:rgba(255,255,255,.06);border-left-color:var(--gold)}
+.cat-btn-icon{font-size:18px;transition:transform .2s}
+.cat-btn.active .cat-btn-icon{transform:scale(1.1)}
+.cat-btn-lbl{font-size:8px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.4px;text-align:center;line-height:1.3;transition:color var(--tr)}
+.cat-btn.active .cat-btn-lbl{color:var(--gold);font-weight:600}
+.cat-add-btn{display:flex;flex-direction:column;align-items:center;padding:10px 3px;cursor:pointer;border:none;background:transparent;gap:4px;width:100%;margin-top:auto;border-top:1px solid rgba(255,255,255,.06);transition:opacity .2s}
+.cat-add-btn:active{opacity:.6}
+.cat-add-c{width:30px;height:30px;border-radius:50%;border:1.5px dashed rgba(201,150,58,.38);color:rgba(201,150,58,.55);display:flex;align-items:center;justify-content:center;font-size:17px}
+.cat-add-lbl{font-size:7.5px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.4px}
+.inv-main{flex:1;overflow-y:auto;padding:11px}
+.inv-row{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);animation:row-in .2s ease both}
+.inv-row:last-child{border-bottom:none}
+@keyframes row-in{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+.inv-bar{width:3px;border-radius:3px;align-self:stretch;min-height:36px;flex-shrink:0}
+.inv-info{flex:1;min-width:0}
+.inv-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-brand{font-size:10px;color:var(--lavender);font-weight:600;margin-top:1px}
+.inv-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.inv-right{text-align:right;flex-shrink:0}
+.inv-qty{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.sale-row{padding:10px 0;border-bottom:1px solid var(--border);animation:row-in .2s ease both}
+.sale-row:last-child{border-bottom:none}
+.sale-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sale-name{font-size:13px;font-weight:600;flex:1}
+.sale-amt{font-size:14px;font-weight:600;font-family:'Fraunces',serif;white-space:nowrap}
+.sale-meta{font-size:11px;color:var(--text3);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pending-card{border-radius:var(--radius);border:1px solid rgba(201,150,58,.2);background:linear-gradient(135deg,#fffdf5,var(--cream));padding:12px 13px;margin-bottom:9px;animation:row-in .25s ease both;transition:opacity .28s,transform .28s}
+.pending-card.dismissing{opacity:0;transform:translateX(40px)}
+.pending-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.pending-title{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.7px}
+.pending-amt{font-family:'Fraunces',serif;font-size:17px;font-weight:600}
+.pending-amt.credit{color:var(--sage)}.pending-amt.debit{color:var(--rose)}
+.pending-meta{font-size:11px;color:var(--text3);margin-bottom:9px}
+.inbox-banner{background:linear-gradient(135deg,var(--ink),#2a1248);border-radius:var(--radius);padding:12px 13px;margin-bottom:13px;display:flex;align-items:center;gap:12px}
+.inbox-title{font-size:13px;font-weight:600;color:var(--gold);margin-bottom:1px}
+.inbox-sub{font-size:11px;color:rgba(255,255,255,.36)}
+.pnl-box{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;margin-bottom:10px;position:relative;overflow:hidden;animation:row-in .22s ease both}
+.pnl-accent{position:absolute;top:0;left:0;width:3px;height:100%}
+.pnl-box-title{font-size:9px;text-transform:uppercase;letter-spacing:1.6px;color:var(--text3);margin-bottom:9px;font-weight:600}
+.pnl-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pnl-line:last-child{border-bottom:none}
+.pnl-label{color:var(--text2)}.pnl-val{font-weight:600}
+.pnl-total{display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding-top:11px;border-top:1.5px solid var(--border-med);margin-top:4px}
+.pnl-total .pnl-val{font-family:'Fraunces',serif;font-size:19px}
+.bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0 3px}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.34,1.2,.64,1)}
+.ptabs{display:flex;gap:3px;background:var(--surface2);border-radius:40px;padding:3px;margin-bottom:13px}
+.ptab{flex:1;text-align:center;padding:5px 2px;border-radius:40px;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;transition:all .2s}
+.ptab.active{background:var(--ink);color:var(--gold);font-weight:600}
+.act-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-text{font-size:12px;flex:1;line-height:1.45}
+.act-time{font-size:10px;color:var(--text3);white-space:nowrap;margin-top:2px}
+.conn-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform var(--tr);animation:row-in .2s ease both}
+.conn-card:active{transform:scale(.97)}
+.conn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.conn-info{flex:1;min-width:0}
+.conn-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.conn-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.conn-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.conn-badge.ok{background:var(--sage-light);color:var(--sage)}
+.conn-badge.off{background:#f0f0ee;color:var(--text3)}
+.conn-badge.beta{background:var(--gold-light);color:var(--gold)}
+.conn-badge.danger{background:var(--rose-light);color:#b02040}
+.sheet-overlay{position:absolute;inset:0;background:rgba(26,10,46,.52);z-index:50;display:flex;align-items:flex-end;overflow:hidden;animation:ov-in .2s ease}
+@keyframes ov-in{from{background:transparent}to{background:rgba(26,10,46,.52)}}
+.sheet{background:var(--cream);border-radius:20px 20px 0 0;padding:14px 16px 30px;width:100%;max-height:92%;overflow-y:auto;animation:sh-up .3s cubic-bezier(.34,1.2,.64,1)}
+@keyframes sh-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:38px;height:3.5px;background:var(--border-med);border-radius:2px;margin:0 auto 14px}
+.sheet-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:13px;color:var(--ink)}
+.frow{margin-bottom:10px;position:relative}
+.frow label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);margin-bottom:4px;font-weight:600}
+.frow input,.frow select,.frow textarea{width:100%;padding:9px 11px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color var(--tr),box-shadow var(--tr);-webkit-appearance:none;appearance:none}
+.frow select{-webkit-appearance:auto;appearance:auto}
+.frow input:focus,.frow select:focus,.frow textarea:focus{border-color:var(--lavender);box-shadow:0 0 0 3px rgba(123,94,167,.1)}
+.frow textarea{resize:vertical;min-height:70px;-webkit-appearance:none}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sactions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.search-inp{width:100%;height:34px;padding:0 11px;border:1px solid var(--border-med);border-radius:40px;background:var(--surface);color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color var(--tr);-webkit-appearance:none}
+.search-inp:focus{border-color:var(--lavender)}
+.empty{padding:28px 16px;text-align:center;color:var(--text3);font-size:13px}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--lavender);border-top-color:transparent;border-radius:50%;animation:spin .55s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note-box{background:var(--lavender-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--lavender);margin-bottom:10px;border:1px solid rgba(123,94,167,.12);line-height:1.55;font-weight:500}
+.warn-box{background:var(--rose-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:#a02030;margin-bottom:10px;border:1px solid rgba(232,98,122,.18);line-height:1.55}
+.info-box{background:var(--gold-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#7a5010;margin-bottom:12px;border:1px solid rgba(201,150,58,.2);line-height:1.6}
+.section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.low-card{background:linear-gradient(135deg,#fde8ec,#fff5f7);border-radius:var(--radius);padding:11px 13px;margin-bottom:13px;border:1px solid rgba(232,98,122,.14)}
+.suggestions{position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--border-med);border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:148px;overflow-y:auto;box-shadow:0 8px 24px rgba(26,10,46,.14);animation:sugg-in .14s ease}
+@keyframes sugg-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.sugg-item{padding:9px 11px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text)}
+.sugg-item:last-child{border-bottom:none}
+.sugg-item:hover,.sugg-item:active{background:var(--surface2)}
+.sugg-item.create{color:var(--sage);font-weight:600}
+.step-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--gold);font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0}
+.step-text{font-size:13px;line-height:1.5;color:var(--text)}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="status-bar"><span id="clock">9:41 AM</span><span>●●● WiFi 🔋</span></div>
+    <div class="header-main">
+      <div>
+        <div class="brand-name"><em>Beauty</em> &amp; Beads</div>
+        <div class="brand-sub" id="hdr-sub">Your business dashboard</div>
+      </div>
+      <button class="mic-btn" id="globalMic" onclick="handleMicTap()">🎙</button>
+    </div>
+  </div>
+  <div id="safari-banner" style="display:none" class="safari-banner" onclick="showSafariHelp()">
+    <span>⚠ Open in Safari for voice &amp; full features — tap here for instructions</span>
+    <span>→</span>
+  </div>
+  <div class="content">
+    <div id="sec-home"      class="section active"><div class="pad" id="home-pad"></div></div>
+    <div id="sec-inventory" class="section"><div class="inv-layout"><div class="cat-pane" id="cat-pane"></div><div class="inv-main" id="inv-main"></div></div></div>
+    <div id="sec-sales"     class="section"><div class="pad" id="sales-pad"></div></div>
+    <div id="sec-pnl"       class="section"><div class="pad" id="pnl-pad"></div></div>
+    <div id="sec-connect"   class="section"><div class="pad" id="connect-pad"></div></div>
+  </div>
+  <div class="nav">
+    <button class="nav-item active" onclick="sw('home',this)"><div class="nav-bar"></div><span class="nav-icon">✦</span><span>Home</span></button>
+    <button class="nav-item" onclick="sw('inventory',this)"><div class="nav-bar"></div><span class="nav-icon">◈</span><span>Stock</span></button>
+    <button class="nav-item" onclick="sw('sales',this)" id="nav-sales"><div class="nav-bar"></div><span class="nav-icon">◉</span><span>Sales</span><span class="nav-badge" id="inbox-badge" style="display:none">0</span></button>
+    <button class="nav-item" onclick="sw('pnl',this)"><div class="nav-bar"></div><span class="nav-icon">◈</span><span>P&amp;L</span></button>
+    <button class="nav-item" onclick="sw('connect',this)"><div class="nav-bar"></div><span class="nav-icon">⬡</span><span>Connect</span></button>
+  </div>
+</div>
+<script>
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+const INR=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const tsNow=()=>new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+', '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const todayStr=()=>new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const safe=s=>(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+// ── IN-APP BROWSER DETECTION ──────────────────────────────────────────────────
+const ua=navigator.userAgent||'';
+const isInAppBrowser=/FBAN|FBAV|Instagram|WhatsApp|wv\b|WebView/i.test(ua)||((/iPhone|iPad/i.test(ua))&&!/Safari/i.test(ua));
+const isSafari=/^((?!chrome|android|crios|fxios).)*safari/i.test(ua)||window.safari!==undefined;
+const hasVoice=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+
+if(isInAppBrowser){
+  setTimeout(()=>{
+    const b=document.getElementById('safari-banner');
+    if(b)b.style.display='flex';
+  },400);
+}
+
+function showSafariHelp(){
+  showSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Open in Safari</div>
+    <div class="info-box">You're viewing this in WhatsApp's browser. Voice commands and some features only work in Safari. Here's how to open it:</div>
+    <div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">1</span><span class="step-text">Tap the <strong>Share icon</strong> (box with arrow ↑) at the bottom of the screen</span></div></div>
+    <div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">2</span><span class="step-text">Scroll down in the Share sheet and tap <strong>"Open in Safari"</strong></span></div></div>
+    <div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">3</span><span class="step-text">If you don't see that option — tap <strong>"Copy Link"</strong>, then open Safari and paste in the address bar</span></div></div>
+    <div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">4</span><span class="step-text"><strong>Add to Home Screen:</strong> In Safari, tap Share → "Add to Home Screen" — it'll appear as an app icon!</span></div></div>
+    <div class="sactions"><button class="btn pri" onclick="closeSheet()">Got it</button></div>`);
+}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function save(){try{localStorage.setItem('bb_cats',JSON.stringify(categories));localStorage.setItem('bb_items',JSON.stringify(items));localStorage.setItem('bb_sales',JSON.stringify(sales));localStorage.setItem('bb_pending',JSON.stringify(pending));localStorage.setItem('bb_activity',JSON.stringify(activity.slice(0,80)));localStorage.setItem('bb_ids',JSON.stringify({nextItemId,nextSaleId}));}catch(e){console.warn('Storage full',e);}}
+function loadData(){try{const c=localStorage.getItem('bb_cats');const i=localStorage.getItem('bb_items');const s=localStorage.getItem('bb_sales');const p=localStorage.getItem('bb_pending');const a=localStorage.getItem('bb_activity');const ids=localStorage.getItem('bb_ids');if(c)categories=JSON.parse(c);if(i)items=JSON.parse(i);if(s)sales=JSON.parse(s);if(p)pending=JSON.parse(p);if(a)activity=JSON.parse(a);if(ids){const o=JSON.parse(ids);nextItemId=o.nextItemId||nextItemId;nextSaleId=o.nextSaleId||nextSaleId;}}catch(e){console.warn('Load error',e);}}
+function mutate(fn){fn();save();refreshLists();}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let categories=[{id:'J',icon:'💎',label:'Jewellery',color:'#7b5ea7'},{id:'C',icon:'👗',label:'Clothing',color:'#4a7c6f'},{id:'B',icon:'✨',label:'Beauty',color:'#c94060'},{id:'A',icon:'👜',label:'Acc.',color:'#c9963a'}];
+let items=[
+  {id:1,name:'Gold bangles',    brand:'Tanishq-style',cat:'J',stock:14,cost:1800,price:2800,low:5, unit:'set',   desc:'22kt gold plated'},
+  {id:2,name:'Silver anklets',  brand:'',             cat:'J',stock:3, cost:550, price:950, low:5, unit:'pair',  desc:''},
+  {id:3,name:'Silk kurta',      brand:'Fabindia',     cat:'C',stock:8, cost:700, price:1200,low:4, unit:'piece', desc:'Medium'},
+  {id:4,name:'Rose face serum', brand:'Plum',         cat:'B',stock:2, cost:200, price:480, low:5, unit:'bottle',desc:'50ml'},
+  {id:5,name:'Pearl earrings',  brand:'',             cat:'J',stock:11,cost:800, price:1500,low:4, unit:'pair',  desc:''},
+  {id:6,name:'Cotton saree',    brand:'',             cat:'C',stock:6, cost:900, price:1800,low:3, unit:'piece', desc:''},
+  {id:7,name:'Hair oil 100ml',  brand:'Mamaearth',    cat:'B',stock:15,cost:80,  price:180, low:6, unit:'bottle',desc:''},
+  {id:8,name:'Oxidised necklace',brand:'',            cat:'J',stock:7, cost:400, price:850, low:3, unit:'piece', desc:''},
+];
+let nextItemId=9;
+let sales=[
+  {id:1,item:'Gold bangles', qty:2,salePrice:2800,amount:5600,cost:3600,method:'PhonePe',note:'',   time:'10:30 AM, 10 Apr',type:'sale'},
+  {id:2,item:'Pearl earrings',qty:1,salePrice:1500,amount:1500,cost:800, method:'Cash',  note:'',   time:'11:15 AM, 10 Apr',type:'sale'},
+  {id:3,item:'Silk kurta',   qty:3,salePrice:1100,amount:3300,cost:2100,method:'UPI',   note:'Bulk',time:'2:00 PM, 9 Apr',  type:'sale'},
+];
+let nextSaleId=4;
+let pending=[
+  {id:'p1',rawDesc:'PhonePe Txn #PP2948',           amount:4750,type:'credit',time:'8:55 AM, 10 Apr'},
+  {id:'p2',rawDesc:'PhonePe Txn #PP2891',           amount:2200,type:'credit',time:'3:10 PM, 9 Apr'},
+  {id:'p3',rawDesc:'Market purchase – Sadar Bazaar',amount:3500,type:'debit', time:'11:00 AM, 8 Apr'},
+];
+let activity=[
+  {t:'sale',    text:'Sold 2 × Gold bangles via PhonePe', time:'10:30 AM, 10 Apr'},
+  {t:'restock', text:'Restocked 10 × Hair oil 100ml',     time:'9:00 AM, 10 Apr'},
+];
+loadData();
+
+// ── SMART SUGGESTION POOLS ────────────────────────────────────────────────────
+let itemNameList=[], brandList=[], unitList=['piece','pair','set','bottle','ml','gm','box','roll','sachet','strip'], descList=[], noteList=[];
+function refreshLists(){
+  itemNameList=[...new Set(items.map(i=>i.name).filter(Boolean))];
+  brandList   =[...new Set(items.map(i=>i.brand).filter(Boolean))];
+  descList    =[...new Set(items.map(i=>i.desc).filter(Boolean))];
+  noteList    =[...new Set(sales.map(s=>s.note).filter(Boolean))];
+  items.forEach(i=>{if(i.unit&&!unitList.includes(i.unit))unitList.push(i.unit);});
+}
+refreshLists();
+
+let activeCat='all', pnlPeriod='all', listening=false, recognition=null;
+function addAct(t,text){activity.unshift({t,text,time:tsNow()});if(activity.length>80)activity.pop();}
+function catColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#888';}
+function catIcon(id) {const c=categories.find(x=>x.id===id);return c?c.icon:'◆';}
+function catLabel(id){const c=categories.find(x=>x.id===id);return c?c.label:id;}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function sw(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  const subs={home:'Your business dashboard',inventory:'Manage your stock',sales:'Transactions & inbox',pnl:'Financial summary',connect:'App connections'};
+  document.getElementById('hdr-sub').textContent=subs[name]||'';
+  render();
+}
+function render(){renderHome();renderInventory();renderSales();renderPnL();renderConnect();updateBadge();}
+function updateBadge(){const b=document.getElementById('inbox-badge');if(pending.length){b.style.display='block';b.textContent=pending.length;}else b.style.display='none';}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function renderHome(){
+  const todayTotal=sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const gp=sales.filter(s=>s.type==='sale').reduce((s,x)=>s+x.amount-x.cost,0);
+  const sv=items.reduce((s,i)=>s+i.stock*i.price,0);
+  const low=items.filter(i=>i.stock<=i.low);
+  document.getElementById('home-pad').innerHTML=`
+    <div class="cards2">
+      <div class="mcard" style="--ca:rgba(74,124,111,.09)"><div class="mcard-dot"></div><div class="mcard-label">Today's sales</div><div class="mcard-val pos">${INR(todayTotal)}</div></div>
+      <div class="mcard" style="--ca:rgba(74,124,111,.09)"><div class="mcard-dot"></div><div class="mcard-label">Gross profit</div><div class="mcard-val pos">${INR(gp)}</div></div>
+      <div class="mcard" style="--ca:rgba(201,150,58,.09)"><div class="mcard-dot"></div><div class="mcard-label">Stock value</div><div class="mcard-val">${INR(sv)}</div></div>
+      <div class="mcard" style="--ca:rgba(232,98,122,.09)"><div class="mcard-dot"></div><div class="mcard-label">Inbox pending</div><div class="mcard-val ${pending.length?'warn':'pos'}">${pending.length}</div></div>
+    </div>
+    <div class="voice-bar">
+      <span style="font-size:17px">🎙</span>
+      <div class="voice-text" id="voice-status">${isInAppBrowser?'Open in Safari for voice — tap for instructions':'Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"'}</div>
+    </div>
+    ${low.length?`<div class="sec-label">Low stock</div>
+    <div class="low-card">${low.map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(232,98,122,.1)"><span>${catIcon(i.cat)} ${i.name}</span><span style="color:#b02040;font-weight:600">${i.stock} ${i.unit} left</span></div>`).join('')}</div>`:''}
+    ${pending.length?`<div class="inbox-banner"><span style="font-size:20px">📥</span><div><div class="inbox-title">${pending.length} transactions need attention</div><div class="inbox-sub">${pending.filter(p=>p.type==='credit').length} PhonePe · ${pending.filter(p=>p.type==='debit').length} payments</div></div><button class="btn sm" style="color:var(--gold);border-color:rgba(201,150,58,.28);background:transparent;margin-left:auto;flex-shrink:0" onclick="sw('sales',document.querySelectorAll('.nav-item')[2])">Review →</button></div>`:''}
+    <div class="sec-label">Recent activity</div>
+    <div>${activity.slice(0,5).map(a=>`<div class="act-row"><div class="act-dot" style="background:${a.t==='sale'?'var(--sage)':a.t==='restock'?'var(--lavender)':'var(--rose)'}"></div><div class="act-text">${a.text}</div><div class="act-time">${a.time}</div></div>`).join('')}</div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn pri" onclick="sw('sales',document.querySelectorAll('.nav-item')[2]);setTimeout(openLogSale,80)">+ Log sale</button>
+      <button class="btn" onclick="sw('inventory',document.querySelectorAll('.nav-item')[1])">View stock</button>
+    </div>`;}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+function renderInventory(){
+  const allCats=[{id:'all',icon:'🏪',label:'All',color:'#888'},...categories];
+  document.getElementById('cat-pane').innerHTML=
+    allCats.map(c=>`<button class="cat-btn ${activeCat===c.id?'active':''}" onclick="setActiveCat('${c.id}')"><span class="cat-btn-icon">${c.icon}</span><span class="cat-btn-lbl">${c.label}</span></button>`).join('')+
+    `<button class="cat-add-btn" onclick="openAddCategory()"><div class="cat-add-c">+</div><span class="cat-add-lbl">New</span></button>`;
+  const filtered=activeCat==='all'?items:items.filter(i=>i.cat===activeCat);
+  document.getElementById('inv-main').innerHTML=`
+    <div class="section-hdr" style="position:sticky;top:0;background:var(--cream);padding:3px 0 8px;z-index:2">
+      <div><span style="font-size:13px;font-weight:600">${activeCat==='all'?'All items':catLabel(activeCat)}</span><span style="font-size:11px;color:var(--text3);margin-left:4px">(${filtered.length})</span></div>
+      <button class="btn pri sm" onclick="openAddItem()">+ Add</button>
+    </div>
+    <input class="search-inp" placeholder="🔍 Search name or brand…" oninput="filterInv(this.value)">
+    <div id="inv-rows">${invRows(filtered)}</div>`;}
+
+function invRows(list){
+  if(!list.length)return'<div class="empty">Nothing here yet ✦</div>';
+  return list.map((i,idx)=>`<div class="inv-row" style="animation-delay:${idx*.04}s">
+    <div class="inv-bar" style="background:${catColor(i.cat)}"></div>
+    <div class="inv-info">
+      <div class="inv-name">${i.name}</div>
+      ${i.brand?`<div class="inv-brand">${i.brand}</div>`:''}
+      <div class="inv-meta">${INR(i.price)}/${i.unit}${i.desc?' · '+i.desc.slice(0,24):''}</div>
+    </div>
+    <div class="inv-right">
+      <div class="inv-qty">${i.stock}</div>
+      <div style="margin-top:3px">${i.stock<=i.low?'<span class="pill low">Low ⚠</span>':'<span class="pill ok">OK</span>'}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-left:5px">
+      <button class="btn xs" onclick="openQuickUpdate(${i.id})">±</button>
+      <button class="btn xs" onclick="openEditItem(${i.id})">✎</button>
+    </div>
+  </div>`).join('');}
+
+function setActiveCat(id){activeCat=id;renderInventory();}
+function filterInv(q){
+  const base=activeCat==='all'?items:items.filter(i=>i.cat===activeCat);
+  const el=document.getElementById('inv-rows');
+  if(el)el.innerHTML=invRows(base.filter(i=>i.name.toLowerCase().includes(q.toLowerCase())||(i.brand||'').toLowerCase().includes(q.toLowerCase())));}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function renderSales(){
+  const todayAmt=sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const ppAmt=sales.filter(s=>s.method==='PhonePe').reduce((s,x)=>s+x.amount,0);
+  let html=`<div class="cards2">
+    <div class="mcard"><div class="mcard-dot"></div><div class="mcard-label">Today</div><div class="mcard-val pos">${INR(todayAmt)}</div></div>
+    <div class="mcard"><div class="mcard-dot"></div><div class="mcard-label">PhonePe total</div><div class="mcard-val">${INR(ppAmt)}</div></div>
+  </div>`;
+  if(pending.length){
+    html+=`<div class="inbox-banner"><span style="font-size:20px">📥</span><div><div class="inbox-title">Inbox — ${pending.length} need descriptions</div><div class="inbox-sub">Tap each to add details and match to inventory</div></div></div>`;
+    html+=pending.map(p=>`<div class="pending-card" id="pc-${p.id}">
+      <div class="pending-hdr"><span class="pending-title">${p.type==='credit'?'💳 PhonePe received':'🏪 Purchase'}</span><span class="pending-amt ${p.type}">${p.type==='debit'?'−':'+'}${INR(p.amount)}</span></div>
+      <div class="pending-meta">${p.rawDesc} · ${p.time}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm pri" onclick="openMatchPending('${safe(p.id)}')">Add description &amp; match</button>
+        <button class="btn sm danger" onclick="dismissPending('${safe(p.id)}')">Dismiss</button>
+      </div>
+    </div>`).join('');}
+  html+=`<div class="section-hdr"><div class="sec-label" style="margin:0">Logged sales</div><button class="btn sm pri" onclick="openLogSale()">+ Log sale</button></div>`;
+  html+=sales.length?sales.slice().reverse().map((s,idx)=>`<div class="sale-row" style="animation-delay:${idx*.035}s">
+    <div class="sale-top"><span class="sale-name">${s.item}${s.qty>1?' ×'+s.qty:''}</span><span class="sale-amt" style="color:${s.type==='purchase'?'var(--rose)':'var(--sage)'}">${s.type==='purchase'?'−':'+'}${INR(s.amount)}</span></div>
+    <div class="sale-meta"><span class="pill ${(s.method||'').toLowerCase()==='phonepe'?'pp':(s.method||'').toLowerCase()}">${s.method}</span>${s.note?`<span>${s.note}</span>`:''}<span>${s.time}</span></div>
+  </div>`).join(''):'<div class="empty">No sales logged yet</div>';
+  document.getElementById('sales-pad').innerHTML=html;}
+
+function dismissPending(id){
+  const card=document.getElementById('pc-'+id);
+  if(card){card.classList.add('dismissing');setTimeout(()=>{mutate(()=>{pending=pending.filter(p=>p.id!==id);addAct('edit','Dismissed transaction');});render();},290);}
+  else{mutate(()=>{pending=pending.filter(p=>p.id!==id);});render();}}
+
+function openMatchPending(id){
+  const p=pending.find(x=>x.id===id);if(!p)return;
+  const isDebit=p.type==='debit';
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">${isDebit?'Log purchase':'Match PhonePe receipt'}</div>
+    <div style="background:${isDebit?'#fde8ec':'var(--sage-light)'};border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:12px;font-size:12px;color:${isDebit?'#b02040':'var(--sage)'}">${p.rawDesc} · ${isDebit?'−':'+'}${INR(p.amount)} · ${p.time}</div>
+    <div class="frow"><label>Description</label>
+      <input id="pm-desc" placeholder="${isDebit?'e.g. Bought 20 anklets':'e.g. Sold sarees to customer'}" autocomplete="off" oninput="showSugg('pm-desc',noteList)">
+      <div class="suggestions" id="pm-desc-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Link to inventory item (optional)</label>
+      <select id="pm-item"><option value="">— none —</option>${items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}</select>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Qty</label><input id="pm-qty" type="number" value="1" min="0"></div>
+      <div class="frow"><label>Amount (₹)</label><input id="pm-amt" type="number" value="${p.amount}"></div>
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="savePending('${safe(id)}',${isDebit})">Save &amp; match</button>
+    </div>`);}
+
+function savePending(id,isDebit){
+  const p=pending.find(x=>x.id===id);if(!p)return;
+  const desc=(document.getElementById('pm-desc').value||'').trim()||p.rawDesc;
+  const itemId=parseInt(document.getElementById('pm-item').value)||0;
+  const qty=parseInt(document.getElementById('pm-qty').value)||1;
+  const amtEl=document.getElementById('pm-amt');
+  const amt=amtEl?parseInt(amtEl.value)||p.amount:p.amount;
+  mutate(()=>{
+    if(itemId){const idx=items.findIndex(x=>x.id===itemId);if(idx>=0){if(isDebit){items[idx].stock+=qty;addAct('restock','Restocked '+qty+' × '+items[idx].name);}else items[idx].stock=Math.max(0,items[idx].stock-qty);}}
+    const it=itemId?items.find(x=>x.id===itemId):null;
+    sales.push({id:nextSaleId++,item:desc,qty,salePrice:it?it.price:0,amount:amt,cost:it?it.cost*qty:0,method:isDebit?'Debit':'PhonePe',note:'',time:p.time,type:isDebit?'purchase':'sale'});
+    addAct(isDebit?'purchase':'sale',(isDebit?'Purchase: ':'Sale: ')+desc+' — '+INR(amt));
+    pending=pending.filter(x=>x.id!==id);
+  });
+  closeSheet();render();}
+
+function openLogSale(){
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">Log a sale ✦</div>
+    <div class="frow"><label>Item sold</label>
+      <select id="sl-item" onchange="autofillSale()">${items.map(i=>`<option value="${i.id}">${i.name} (${i.stock} in stock)</option>`).join('')}</select>
+    </div>
+    <div class="fgrid">
+      <div class="frow"><label>Quantity</label><input id="sl-qty" type="number" value="1" min="1" oninput="autofillSale()"></div>
+      <div class="frow"><label>Sale price per unit (₹)</label><input id="sl-price" type="number" placeholder="From inventory" oninput="calcSaleAmt()"></div>
+    </div>
+    <div class="frow"><label>Total amount (₹)</label><input id="sl-amt" type="number" placeholder="Auto-calculated"></div>
+    <div class="frow"><label>Payment method</label>
+      <select id="sl-method"><option>PhonePe</option><option>UPI</option><option>Cash</option><option>Card</option></select>
+    </div>
+    <div class="frow"><label>Note</label>
+      <input id="sl-note" placeholder="Optional" autocomplete="off" oninput="showSugg('sl-note',noteList)">
+      <div class="suggestions" id="sl-note-sugg" style="display:none"></div>
+    </div>
+    <div class="note-box">Changing the price here uses that amount in P&amp;L — not the inventory default.</div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="saveSale()">Save sale</button>
+    </div>`);
+  setTimeout(autofillSale,10);}
+
+function autofillSale(){
+  const sel=document.getElementById('sl-item'),pEl=document.getElementById('sl-price'),aEl=document.getElementById('sl-amt'),qEl=document.getElementById('sl-qty');
+  if(!sel||!pEl||!aEl||!qEl)return;
+  const it=items.find(x=>x.id===parseInt(sel.value));const qty=parseInt(qEl.value)||1;
+  if(it&&!pEl._touched)pEl.value=it.price;
+  if(it)aEl.value=(parseInt(pEl.value)||it.price)*qty;}
+
+function calcSaleAmt(){
+  const pEl=document.getElementById('sl-price'),aEl=document.getElementById('sl-amt'),qEl=document.getElementById('sl-qty');
+  if(!pEl||!aEl||!qEl)return;
+  pEl._touched=true;aEl.value=(parseInt(pEl.value)||0)*(parseInt(qEl.value)||1);}
+
+function saveSale(){
+  const itemId=parseInt(document.getElementById('sl-item').value);
+  const qty=parseInt(document.getElementById('sl-qty').value)||1;
+  const price=parseInt(document.getElementById('sl-price').value)||0;
+  const amt=parseInt(document.getElementById('sl-amt').value)||0;
+  const method=document.getElementById('sl-method').value;
+  const note=(document.getElementById('sl-note').value||'').trim();
+  const it=items.find(x=>x.id===itemId);if(!it)return;
+  mutate(()=>{
+    items[items.findIndex(x=>x.id===itemId)].stock=Math.max(0,it.stock-qty);
+    sales.push({id:nextSaleId++,item:it.name,qty,salePrice:price,amount:amt,cost:it.cost*qty,method,note,time:tsNow(),type:'sale'});
+    addAct('sale','Sold '+qty+' × '+it.name+' @ '+INR(price)+' = '+INR(amt));
+  });
+  closeSheet();render();}
+
+// ── P&L ───────────────────────────────────────────────────────────────────────
+function renderPnL(){
+  const st=sales.filter(s=>s.type==='sale'),pt=sales.filter(s=>s.type==='purchase');
+  const rev=st.reduce((s,x)=>s+x.amount,0),cogs=st.reduce((s,x)=>s+x.cost,0),pur=pt.reduce((s,x)=>s+x.amount,0);
+  const gross=rev-cogs,gm=rev?Math.round(gross/rev*100):0;
+  const bm={};st.forEach(s=>{bm[s.method]=(bm[s.method]||0)+s.amount;});
+  const sc=items.reduce((s,i)=>s+i.stock*i.cost,0),sr=items.reduce((s,i)=>s+i.stock*i.price,0);
+  document.getElementById('pnl-pad').innerHTML=`
+    <div class="ptabs">${['today','week','month','all'].map(p=>`<button class="ptab ${pnlPeriod===p?'active':''}" onclick="setPnlPeriod('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}</div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--sage)"></div>
+      <div class="pnl-box-title">Income</div>
+      <div class="pnl-line"><span class="pnl-label">Total revenue</span><span class="pnl-val" style="color:var(--sage)">${INR(rev)}</span></div>
+      ${Object.entries(bm).map(([m,v])=>`<div class="pnl-line"><span class="pnl-label">— ${m}</span><span class="pnl-val">${INR(v)}</span></div>`).join('')}
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--rose)"></div>
+      <div class="pnl-box-title">Cost of goods sold</div>
+      <div class="pnl-line"><span class="pnl-label">Purchase cost of items sold</span><span class="pnl-val" style="color:var(--rose)">${INR(cogs)}</span></div>
+      ${pur?`<div class="pnl-line"><span class="pnl-label">Direct market purchases</span><span class="pnl-val" style="color:var(--rose)">${INR(pur)}</span></div>`:''}
+      <div class="bar-wrap"><div class="bar-fill" style="width:${rev?Math.min(100,Math.round(cogs/rev*100)):0}%;background:var(--rose)"></div></div>
+      <div style="font-size:11px;color:var(--text3)">${rev?Math.round(cogs/rev*100):0}% of revenue</div>
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--gold)"></div>
+      <div class="pnl-box-title">Gross profit</div>
+      <div class="pnl-total"><span style="color:var(--text2)">Gross profit</span><span class="pnl-val" style="color:${gross>=0?'var(--sage)':'var(--rose)'}">${INR(gross)}</span></div>
+      <div class="bar-wrap" style="margin-top:10px"><div class="bar-fill" style="width:${Math.max(0,gm)}%;background:var(--sage)"></div></div>
+      <div style="font-size:11px;color:var(--text3);margin-top:2px">Gross margin: ${gm}%</div>
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--lavender)"></div>
+      <div class="pnl-box-title">Stock on hand</div>
+      <div class="pnl-line"><span class="pnl-label">At cost price</span><span class="pnl-val">${INR(sc)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">At retail price</span><span class="pnl-val">${INR(sr)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">Unrealised margin</span><span class="pnl-val" style="color:var(--sage)">${INR(sr-sc)}</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:4px 0 10px">Based on actual sale prices · Add operating costs for full P&amp;L</div>`;}
+function setPnlPeriod(p){pnlPeriod=p;renderPnL();}
+
+// ── CONNECT PAGE ──────────────────────────────────────────────────────────────
+function renderConnect(){
+  document.getElementById('connect-pad').innerHTML=`
+    ${isInAppBrowser?`<div class="info-box" onclick="showSafariHelp()" style="cursor:pointer">⚠ <strong>You're in WhatsApp's browser.</strong> Tap here to learn how to open in Safari for full features including voice commands.</div>`:''}
+    <div class="sec-label">Payment & banking</div>
+    <div class="conn-card" onclick="openPhonePeSheet()"><div class="conn-icon" style="background:#efe9f7">💳</div><div class="conn-info"><div class="conn-name">PhonePe Business</div><div class="conn-desc">Import CSV exports or paste transaction alerts</div></div><span class="conn-badge beta">CSV import</span></div>
+    <div class="conn-card" onclick="openSMSSheet()"><div class="conn-icon" style="background:#e0f0fc">✉</div><div class="conn-info"><div class="conn-name">Bank / UPI SMS parser</div><div class="conn-desc">Paste any bank SMS — AI extracts the amount and adds to inbox</div></div><span class="conn-badge off">Paste SMS</span></div>
+    <div class="sec-label">Order import</div>
+    <div class="conn-card" onclick="openWhatsAppSheet()"><div class="conn-icon" style="background:var(--sage-light)">💬</div><div class="conn-info"><div class="conn-name">WhatsApp order parser</div><div class="conn-desc">Paste or forward supplier messages — AI imports items to inventory</div></div><span class="conn-badge off">Paste message</span></div>
+    <div class="conn-card" onclick="openEmailSheet()"><div class="conn-icon" style="background:var(--rose-light)">📧</div><div class="conn-info"><div class="conn-name">Email order parser</div><div class="conn-desc">Paste any supplier email — AI reads and updates inventory</div></div><span class="conn-badge off">Paste email</span></div>
+    <div class="sec-label">Data & export</div>
+    <div class="conn-card" onclick="exportCSV('sales')"><div class="conn-icon" style="background:var(--sage-light)">📊</div><div class="conn-info"><div class="conn-name">Export sales to CSV</div><div class="conn-desc">Download all sales — open in Excel or Google Sheets</div></div><span class="conn-badge off">Download</span></div>
+    <div class="conn-card" onclick="exportCSV('inventory')"><div class="conn-icon" style="background:var(--gold-light)">📦</div><div class="conn-info"><div class="conn-name">Export inventory to CSV</div><div class="conn-desc">Full inventory with costs, prices and stock levels</div></div><span class="conn-badge off">Download</span></div>
+    <div class="conn-card" onclick="clearAllData()"><div class="conn-icon" style="background:var(--rose-light)">🗑</div><div class="conn-info"><div class="conn-name">Clear all data</div><div class="conn-desc">Wipe all inventory, sales and activity. Cannot be undone.</div></div><span class="conn-badge danger">Danger</span></div>`;}
+
+function openPhonePeSheet(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">PhonePe Business</div><div class="note-box">Open PhonePe Business app → Passbook → Export → select date range → share CSV. Paste the CSV rows below (date, description, amount — one per line).</div><div class="frow"><label>Paste CSV rows</label><textarea id="pp-csv" placeholder="10 Apr 2025, Txn #PP2948, 4750&#10;9 Apr 2025, Txn #PP2891, 2200"></textarea></div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="importPhonePeCSV()">Import</button></div>`);}
+function importPhonePeCSV(){const raw=(document.getElementById('pp-csv').value||'').trim();if(!raw){closeSheet();return;}const lines=raw.split('\n').filter(l=>l.trim());let added=0;mutate(()=>{lines.forEach(line=>{const parts=line.split(',').map(s=>s.trim());const desc=parts[1]||('PhonePe row '+(added+1));const amt=parseFloat(parts[2]||parts[1])||0;if(amt>0){pending.push({id:'pp'+Date.now()+added,rawDesc:desc,amount:amt,type:'credit',time:parts[0]||todayStr()});added++;}});});closeSheet();render();if(added)alert(added+' transactions added to inbox.');}
+
+function openSMSSheet(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Bank / UPI SMS parser</div><div class="note-box">Paste the SMS you received from PhonePe, Google Pay, or your bank. The app will extract the amount and add it to your inbox.</div><div class="frow"><label>Paste SMS text</label><textarea id="sms-text" placeholder="e.g. Rs.2500 credited to your a/c via UPI Ref 123456..."></textarea></div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="parseSMSText()">Parse &amp; add to inbox</button></div>`);}
+function parseSMSText(){const text=(document.getElementById('sms-text').value||'').trim();if(!text){closeSheet();return;}const amtMatch=text.match(/(?:rs\.?|inr|₹)\s*([\d,]+(?:\.\d{1,2})?)/i);const amt=amtMatch?parseFloat(amtMatch[1].replace(/,/g,'')):0;if(!amt){alert('Could not find an amount in this SMS. Please check the text.');return;}const isDebit=/debited|sent|paid|debit/i.test(text);mutate(()=>{pending.push({id:'sms'+Date.now(),rawDesc:text.slice(0,70),amount:amt,type:isDebit?'debit':'credit',time:todayStr()});addAct('edit','SMS parsed: '+INR(amt)+' added to inbox');});closeSheet();render();}
+
+function openWhatsAppSheet(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">WhatsApp order parser</div><div class="note-box">In WhatsApp, long-press the supplier message → Copy → paste below. AI will extract items and add them to your inventory.</div><div class="frow"><label>Paste message</label><textarea id="wa-text" placeholder="e.g. Hi, order details:&#10;- Gold bangles × 10&#10;- Silver anklets × 20&#10;Total: ₹40,000"></textarea></div><div id="wa-result"></div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="parseOrderText('wa-text','wa-result')">Extract &amp; import</button></div>`);}
+function openEmailSheet(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Email order parser</div><div class="note-box">Copy the body of your supplier email and paste below. Works with any language or format.</div><div class="frow"><label>Paste email body</label><textarea id="em-text" placeholder="Dear Madam, please find order:&#10;1. Silk kurta (M) – 15 pcs @ ₹700..."></textarea></div><div id="em-result"></div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="parseOrderText('em-text','em-result')">Extract &amp; import</button></div>`);}
+
+async function parseOrderText(textId,resultId){
+  const text=(document.getElementById(textId).value||'').trim();if(!text)return;
+  document.getElementById(resultId).innerHTML='<div style="font-size:12px;color:var(--lavender);padding:8px 0"><span class="spinner"></span> Reading with AI…</div>';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,
+        messages:[{role:'user',content:`Extract product items from this supplier message for an Indian boutique. Return ONLY valid JSON, no markdown:\n{"items":[{"name":"name","qty":number,"category":"Jewellery|Clothing|Beauty|Accessories","cost":0,"unit":"piece"}]}\n\nMessage:\n${text}`}]})});
+    const data=await resp.json();
+    const raw=data.content.map(c=>c.text||'').join('');
+    const parsed=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    const extracted=parsed.items||[];let added=0,updated=0;
+    mutate(()=>{extracted.forEach(e=>{const ex=items.find(i=>i.name.toLowerCase()===e.name.toLowerCase());
+      if(ex){ex.stock+=e.qty;updated++;addAct('restock','Order: +'+e.qty+' × '+e.name);}
+      else{items.push({id:nextItemId++,name:e.name,brand:'',cat:e.category==='Jewellery'?'J':e.category==='Clothing'?'C':e.category==='Beauty'?'B':'A',stock:e.qty,cost:e.cost||0,price:0,low:5,unit:e.unit||'piece',desc:'From order'});added++;addAct('restock','Order added: '+e.name+' ('+e.qty+')');}});});
+    document.getElementById(resultId).innerHTML=`<div style="background:var(--sage-light);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--sage);margin-top:8px">✓ Done! ${added} new items added, ${updated} restocked.<br>${extracted.map(e=>`<div style="padding:2px 0">• ${e.name} — ${e.qty} ${e.unit||'piece'}</div>`).join('')}</div>`;
+    render();
+  }catch(err){document.getElementById(resultId).innerHTML='<div class="warn-box">Could not parse. Check formatting and try again.</div>';}}
+
+function exportCSV(type){
+  let csv,filename;
+  if(type==='sales'){csv='Date,Item,Qty,Sale Price,Total,Cost,Method,Note,Type\n'+sales.map(s=>`"${s.time}","${s.item}",${s.qty},${s.salePrice},${s.amount},${s.cost},"${s.method}","${s.note||''}","${s.type}"`).join('\n');filename='beauty-beads-sales.csv';}
+  else{csv='Name,Brand,Category,Stock,Unit,Cost Price,Selling Price,Low Alert,Description\n'+items.map(i=>`"${i.name}","${i.brand||''}","${catLabel(i.cat)}",${i.stock},"${i.unit}",${i.cost},${i.price},${i.low},"${i.desc||''}"`).join('\n');filename='beauty-beads-inventory.csv';}
+  const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+
+function clearAllData(){
+  if(!confirm('Delete ALL inventory, sales and activity? This cannot be undone.'))return;
+  mutate(()=>{items=[];sales=[];pending=[];activity=[];nextItemId=1;nextSaleId=1;});render();alert('All data cleared.');}
+
+// ── ITEM FORMS ────────────────────────────────────────────────────────────────
+// FIX: f-name now has oninput showSugg and f-name-sugg div
+function itemFormHTML(i){
+  const e=!!i;
+  return`<div class="fgrid">
+    <div class="frow" style="grid-column:1/-1"><label>Item name</label>
+      <input id="f-name" value="${safe(i?i.name:'')}" placeholder="e.g. Gold bangle" autocomplete="off" oninput="showSugg('f-name',itemNameList)">
+      <div class="suggestions" id="f-name-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Brand</label>
+      <input id="f-brand" value="${safe(i?i.brand||'':'')}" placeholder="e.g. Fabindia" autocomplete="off" oninput="showSugg('f-brand',brandList)">
+      <div class="suggestions" id="f-brand-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Category</label>
+      <select id="f-cat">${categories.map(c=>`<option value="${c.id}" ${i&&i.cat===c.id?'selected':''}>${c.icon} ${c.label}</option>`).join('')}</select>
+    </div>
+    <div class="frow"><label>Unit</label>
+      <input id="f-unit" value="${safe(i?i.unit:'piece')}" placeholder="piece/set/ml" autocomplete="off" oninput="showSugg('f-unit',unitList)">
+      <div class="suggestions" id="f-unit-sugg" style="display:none"></div>
+    </div>
+    <div class="frow"><label>Stock qty</label><input id="f-stock" type="number" value="${i?i.stock:0}" min="0"></div>
+    <div class="frow"><label>Cost price (₹)</label><input id="f-cost" type="number" value="${i?i.cost:0}" min="0"></div>
+    <div class="frow"><label>Selling price (₹)</label><input id="f-price" type="number" value="${i?i.price:0}" min="0"></div>
+    <div class="frow"><label>Low stock alert at</label><input id="f-low" type="number" value="${i?i.low:5}" min="1"></div>
+  </div>
+  <div class="frow"><label>Description / notes</label>
+    <input id="f-desc" value="${safe(i?i.desc||'':'')}" placeholder="Colour, size, supplier info…" autocomplete="off" oninput="showSugg('f-desc',descList)">
+    <div class="suggestions" id="f-desc-sugg" style="display:none"></div>
+  </div>
+  <div class="sactions">
+    ${e?`<button class="btn danger" onclick="deleteItem(${i.id})">Delete</button>`:''}
+    <button class="btn" onclick="closeSheet()">Cancel</button>
+    <button class="btn pri" onclick="saveItem(${i?i.id:0})">Save</button>
+  </div>`;}
+
+function openAddItem(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Add new item ✦</div>${itemFormHTML(null)}`);}
+function openEditItem(id){const i=items.find(x=>x.id===id);if(!i)return;showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Edit — ${i.name}</div>${itemFormHTML(i)}`);}
+
+function saveItem(idNum){
+  const name=(document.getElementById('f-name').value||'').trim();if(!name)return;
+  const obj={name,brand:(document.getElementById('f-brand').value||'').trim(),cat:document.getElementById('f-cat').value,unit:(document.getElementById('f-unit').value||'piece').trim(),stock:parseInt(document.getElementById('f-stock').value)||0,cost:parseInt(document.getElementById('f-cost').value)||0,price:parseInt(document.getElementById('f-price').value)||0,low:parseInt(document.getElementById('f-low').value)||5,desc:(document.getElementById('f-desc').value||'').trim()};
+  mutate(()=>{
+    if(idNum&&idNum>0){const idx=items.findIndex(x=>x.id===idNum);if(idx>=0){items[idx]={...items[idx],...obj};addAct('edit','Updated: '+obj.name);}}
+    else{obj.id=nextItemId++;items.push(obj);addAct('restock','Added new: '+obj.name);}
+  });
+  closeSheet();render();}
+
+function deleteItem(id){
+  const i=items.find(x=>x.id===id);if(!i)return;
+  mutate(()=>{items=items.filter(x=>x.id!==id);addAct('edit','Removed: '+i.name);});
+  closeSheet();render();}
+
+function openQuickUpdate(id){
+  const i=items.find(x=>x.id===id);if(!i)return;
+  showSheet(`<div class="sheet-handle"></div>
+    <div class="sheet-title">Update stock</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${catIcon(i.cat)} ${i.name} — currently <strong>${i.stock}</strong> ${i.unit}</div>
+    <div class="frow"><label>Action</label><select id="qa"><option value="sell">Sold / used</option><option value="add">Received / restocked</option><option value="set">Set exact qty</option></select></div>
+    <div class="frow"><label>Quantity</label><input id="qq" type="number" value="1" min="0"></div>
+    <div class="frow"><label>Note (optional)</label>
+      <input id="qn" placeholder="e.g. festival sale, breakage" autocomplete="off" oninput="showSugg('qn',noteList)">
+      <div class="suggestions" id="qn-sugg" style="display:none"></div>
+    </div>
+    <div class="sactions">
+      <button class="btn" onclick="closeSheet()">Cancel</button>
+      <button class="btn pri" onclick="applyQuick(${id})">Apply</button>
+    </div>`);}
+
+function applyQuick(id){
+  const idx=items.findIndex(x=>x.id===id);if(idx<0)return;
+  const i=items[idx];const action=document.getElementById('qa').value;
+  const qty=parseInt(document.getElementById('qq').value)||1;
+  const note=(document.getElementById('qn').value||'').trim();
+  mutate(()=>{
+    if(action==='sell'){items[idx].stock=Math.max(0,i.stock-qty);addAct('sale','Used '+qty+' × '+i.name+(note?' ('+note+')':''));}
+    else if(action==='add'){items[idx].stock=i.stock+qty;addAct('restock','Restocked '+qty+' × '+i.name+(note?' ('+note+')':''));}
+    else{items[idx].stock=qty;addAct('edit','Set '+i.name+' to '+qty);}
+  });
+  closeSheet();render();}
+
+// ── ADD CATEGORY ──────────────────────────────────────────────────────────────
+function openAddCategory(){
+  const emojis=['🌸','💄','🧣','🪡','🛍','🌿','🧴','🪞','💍','🧸','🌺','🎀','👒','🧤','🫧','🪷'];
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">New category</div>
+    <div class="frow"><label>Category name</label><input id="nc-name" placeholder="e.g. Hair care"></div>
+    <div class="frow"><label>Icon — tap to select</label>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">
+        ${emojis.map(e=>`<button class="ep" onclick="pickEmoji(this,'${e}')" style="font-size:20px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer">${e}</button>`).join('')}
+      </div>
+      <input id="nc-icon" value="🌸" style="width:56px;text-align:center;font-size:17px;border-radius:8px;border:1px solid var(--border-med);padding:6px">
+    </div>
+    <div class="frow"><label>Colour</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+        ${['#7b5ea7','#4a7c6f','#c94060','#c9963a','#185fa5','#1a7a5a','#8a3a52','#b07030'].map(c=>`<div class="cdot" onclick="pickColor(this,'${c}')" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;outline:2.5px solid transparent;outline-offset:2px;transition:outline .15s"></div>`).join('')}
+      </div>
+      <input id="nc-color" value="#7b5ea7" placeholder="#hex color code">
+    </div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveNewCategory()">Add category</button></div>`);}
+
+// FIX: pass element reference instead of using event global
+function pickEmoji(el,e){document.getElementById('nc-icon').value=e;document.querySelectorAll('.ep').forEach(b=>{b.style.background='var(--surface2)';b.style.borderColor='var(--border)';});el.style.background='var(--lavender-light)';el.style.borderColor='var(--lavender)';}
+function pickColor(el,c){document.getElementById('nc-color').value=c;document.querySelectorAll('.cdot').forEach(d=>d.style.outlineColor='transparent');el.style.outlineColor='var(--ink)';}
+
+function saveNewCategory(){
+  const name=(document.getElementById('nc-name').value||'').trim();if(!name)return;
+  const icon=document.getElementById('nc-icon').value||'◆';
+  const color=document.getElementById('nc-color').value||'#888';
+  const id=name.slice(0,3).toUpperCase().replace(/\s/g,'')+Date.now().toString().slice(-3);
+  mutate(()=>{categories.push({id,icon,label:name,color});});
+  closeSheet();renderInventory();}
+
+// ── SMART DROPDOWNS ───────────────────────────────────────────────────────────
+function showSugg(inputId,list){
+  const input=document.getElementById(inputId);
+  const sugg=document.getElementById(inputId+'-sugg');
+  if(!input||!sugg)return;
+  const val=(input.value||'').trim().toLowerCase();
+  // For item name: filter out current item being edited, show all when empty
+  const filtered=list.filter(v=>v&&v.toLowerCase().includes(val)&&v!==input.value);
+  const showCreate=val.length>0&&!list.some(v=>(v||'').toLowerCase()===val);
+  let html=filtered.slice(0,7).map(v=>`<div class="sugg-item" onmousedown="pickSugg(event,'${inputId}','${safe(v)}')">${v}</div>`).join('');
+  if(showCreate)html+=`<div class="sugg-item create" onmousedown="pickSugg(event,'${inputId}','${safe(val)}')">✦ Add as new: "${val}"</div>`;
+  if(html){sugg.innerHTML=html;sugg.style.display='block';}
+  else sugg.style.display='none';
+  input.onblur=()=>setTimeout(()=>{if(sugg)sugg.style.display='none';},180);}
+
+// Show all suggestions on focus (for empty field)
+function focusSugg(inputId,list){
+  const input=document.getElementById(inputId);
+  const sugg=document.getElementById(inputId+'-sugg');
+  if(!input||!sugg||list.length===0)return;
+  const html=list.slice(0,7).map(v=>`<div class="sugg-item" onmousedown="pickSugg(event,'${inputId}','${safe(v)}')">${v}</div>`).join('');
+  if(html){sugg.innerHTML=html;sugg.style.display='block';}
+  input.onblur=()=>setTimeout(()=>{if(sugg)sugg.style.display='none';},180);}
+
+// FIX: evt.preventDefault() stops blur from firing before mousedown pick
+function pickSugg(evt,inputId,val){
+  evt.preventDefault();
+  const input=document.getElementById(inputId);
+  if(input){input.value=val;input.dispatchEvent(new Event('change'));}
+  const sugg=document.getElementById(inputId+'-sugg');
+  if(sugg)sugg.style.display='none';
+  // Add to correct pool
+  if(inputId==='f-name'  &&!itemNameList.includes(val))itemNameList.push(val);
+  if(inputId==='f-brand' &&!brandList.includes(val))   brandList.push(val);
+  if(inputId==='f-unit'  &&!unitList.includes(val))    unitList.push(val);
+  if(inputId==='f-desc'  &&!descList.includes(val))    descList.push(val);
+  if((inputId==='sl-note'||inputId==='qn'||inputId==='pm-desc')&&!noteList.includes(val))noteList.push(val);}
+
+// ── SHEET UTILS ───────────────────────────────────────────────────────────────
+function showSheet(html){
+  closeSheet();
+  const bg=document.createElement('div');bg.className='sheet-overlay';bg.id='active-sheet';
+  bg.addEventListener('click',e=>{if(e.target===bg)closeSheet();});
+  const sh=document.createElement('div');sh.className='sheet';sh.innerHTML=html;
+  bg.appendChild(sh);document.getElementById('app').appendChild(bg);}
+function closeSheet(){const el=document.getElementById('active-sheet');if(el)el.remove();}
+
+// ── VOICE ─────────────────────────────────────────────────────────────────────
+const VP=[
+  {re:/sold?\s+(\d+)\s+(.+?)(?:\s+via\s+(.+?))?$/i,          action:'sell'},
+  {re:/sell\s+(\d+)\s+(.+)/i,                                 action:'sell'},
+  {re:/customer\s+(?:bought|took|purchased)\s+(\d+)\s+(.+)/i, action:'sell'},
+  {re:/(?:received?|restocked?|got|added?)\s+(\d+)\s+(.+)/i,  action:'restock'},
+  {re:/(\d+)\s+(.+?)\s+(?:received|arrived|came\s*in)/i,      action:'restock'},
+];
+function lsim(q,t){const qw=q.toLowerCase().split(/\s+/);let h=0;for(const w of qw){if(t.toLowerCase().includes(w)&&w.length>2)h++;}return h/Math.max(qw.length,1);}
+function gMethod(s){if(!s)return'Cash';if(/phone\s*pe|pp/i.test(s))return'PhonePe';if(/upi|gpay|paytm/i.test(s))return'UPI';if(/card/i.test(s))return'Card';return'Cash';}
+function matchLocal(t){for(const pat of VP){const m=t.match(pat.re);if(m){const qty=parseInt(m[1]);const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');const method=(m[3]||'').trim();const best=items.map(i=>({i,s:lsim(name,i.name)})).sort((a,b)=>b.s-a.s)[0];if(best&&best.s>0.25)return{action:pat.action,item:best.i,qty,method:gMethod(method)};}}return null;}
+
+function applyVoice({action,item,qty,method}){
+  const idx=items.findIndex(x=>x.id===item.id);if(idx<0)return;
+  mutate(()=>{
+    if(action==='sell'){
+      items[idx].stock=Math.max(0,item.stock-qty);
+      const amt=item.price*qty;
+      sales.push({id:nextSaleId++,item:item.name,qty,salePrice:item.price,amount:amt,cost:item.cost*qty,method:method||'Cash',note:'via voice',time:tsNow(),type:'sale'});
+      addAct('sale','Voice: sold '+qty+' × '+item.name+' = '+INR(amt));
+      setVS('✓ Sold '+qty+' × '+item.name+' — '+INR(amt));
+    }else{
+      items[idx].stock=item.stock+qty;
+      addAct('restock','Voice: restocked '+qty+' × '+item.name);
+      setVS('✓ Restocked '+qty+' × '+item.name);
+    }
+  });
+  render();
+  setTimeout(()=>setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"'),4000);}
+
+// FIX: handleMicTap catches browser errors + shows helpful messages per context
+function handleMicTap(){
+  if(isInAppBrowser){showSafariHelp();return;}
+  if(!hasVoice){
+    showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Voice not available</div>
+      <div class="warn-box">Voice recognition is not supported in this browser. Please open this app in Safari (iPhone) or Chrome (Android).</div>
+      <div class="sactions"><button class="btn pri" onclick="closeSheet()">OK</button></div>`);
+    return;}
+  toggleVoice();}
+
+async function toggleVoice(){
+  if(listening){if(recognition)recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){handleMicTap();return;}
+  recognition=new SR();recognition.lang='en-IN';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onstart=()=>{listening=true;document.getElementById('globalMic').classList.add('listening');setVS('<span class="spinner"></span> Listening…');};
+  recognition.onerror=(e)=>{
+    stopListening();
+    if(e.error==='not-allowed'||e.error==='permission-denied'){
+      setVS('Mic access denied. Allow microphone in Settings → Safari → Microphone.');
+    }else if(e.error==='no-speech'){
+      setVS('Nothing heard. Try speaking clearly and try again.');
+    }else{
+      setVS('Could not start mic. Try again.');
+    }};
+  recognition.onend=()=>stopListening();
+  recognition.onresult=async(e)=>{
+    const t=e.results[0][0].transcript;
+    stopListening();
+    setVS('<span class="spinner"></span> Heard: "'+t+'" — matching…');
+    const local=matchLocal(t);
+    if(local){applyVoice(local);return;}
+    try{
+      const names=items.map(i=>i.name+' (id:'+i.id+')').join(', ');
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+          messages:[{role:'user',content:`Inventory: ${names}. Voice command: "${t}". Return ONLY JSON: {"action":"sell|restock|set|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]})});
+      const data=await resp.json();
+      const raw=data.content.map(c=>c.text||'').join('');
+      const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      if(result.action==='unknown'){setVS('Could not understand. Try: "sold 3 earrings" or "received 20 kurtas"');return;}
+      const it=items.find(x=>x.id===result.itemId);
+      if(!it){setVS('Item not found. Check spelling and try again.');return;}
+      applyVoice({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash'});
+    }catch(err){setVS('Log manually if needed — tap + Log sale.');}};
+
+  // FIX: wrap start() in try-catch for permission errors on some devices
+  try{recognition.start();}
+  catch(err){stopListening();setVS('Mic blocked. Check browser permissions.');}}
+
+function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
+function setVS(msg){const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+function updateClock(){const cl=document.getElementById('clock');if(cl)cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,30000);
+
+render();
+</script>
+</body>
+</html>
