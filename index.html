@@ -149,6 +149,20 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);over
 .empty{padding:28px 16px;text-align:center;color:var(--text3);font-size:13px}
 .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--lavender);border-top-color:transparent;border-radius:50%;animation:spin .55s linear infinite;vertical-align:middle;margin-right:4px}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── VOICE CONFIRM OVERLAY ── */
+.vc-overlay{position:absolute;inset:0;z-index:60;background:rgba(26,10,46,.65);display:flex;align-items:flex-end;animation:ov-in .2s ease;backdrop-filter:blur(2px)}
+.vc-card{background:var(--cream);border-radius:24px 24px 0 0;width:100%;padding:22px 20px 40px;animation:sh-up .35s cubic-bezier(.34,1.2,.64,1)}
+.vc-handle{width:38px;height:3.5px;background:var(--border-med);border-radius:2px;margin:0 auto 18px}
+.vc-heard{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);font-weight:600;margin-bottom:8px}
+.vc-main{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:600;color:var(--ink);line-height:1.25;margin-bottom:6px}
+.vc-sub{font-size:14px;color:var(--text2);margin-bottom:22px;line-height:1.5}
+.vc-amount{display:inline-block;background:var(--sage-light);color:var(--sage);border-radius:10px;padding:4px 12px;font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:22px}
+.vc-amount.restock{background:var(--lavender-light);color:var(--lavender)}
+.vc-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vc-yes{height:52px;border-radius:14px;border:none;background:var(--ink);color:var(--gold);font-size:16px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,opacity .12s}
+.vc-yes:active{transform:scale(.95)}
+.vc-no{height:52px;border-radius:14px;border:1.5px solid var(--border-med);background:var(--surface);color:var(--text2);font-size:15px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .12s}
+.vc-no:active{transform:scale(.95)}
 .note-box{background:var(--lavender-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--lavender);margin-bottom:10px;border:1px solid rgba(123,94,167,.12);line-height:1.55;font-weight:500}
 .warn-box{background:var(--rose-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:#a02030;margin-bottom:10px;border:1px solid rgba(232,98,122,.18);line-height:1.55}
 .info-box{background:var(--gold-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#7a5010;margin-bottom:12px;border:1px solid rgba(201,150,58,.2);line-height:1.6}
@@ -274,7 +288,8 @@ function refreshLists(){
 }
 refreshLists();
 
-let activeCat='all', pnlPeriod='all', listening=false, recognition=null, voiceTimeout=null;
+let activeCat='all', pnlPeriod='all', listening=false, recognition=null;
+let _voiceMsg = ''; // persists across render() calls
 function addAct(t,text){activity.unshift({t,text,time:tsNow()});if(activity.length>80)activity.pop();}
 function catColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#888';}
 function catIcon(id) {const c=categories.find(x=>x.id===id);return c?c.icon:'◆';}
@@ -308,7 +323,7 @@ function renderHome(){
     </div>
     <div class="voice-bar">
       <span style="font-size:17px">🎙</span>
-      <div class="voice-text" id="voice-status">${isInAppBrowser?'Open in Safari for voice — tap for instructions':'Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"'}</div>
+      <div class="voice-text" id="voice-status">${isInAppBrowser?'Open in Safari for voice — tap for instructions':(_voiceMsg||'Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"')}</div>
     </div>
     ${low.length?`<div class="sec-label">Low stock</div>
     <div class="low-card">${low.map(i=>`<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(232,98,122,.1)"><span>${catIcon(i.cat)} ${i.name}</span><span style="color:#b02040;font-weight:600">${i.stock} ${i.unit} left</span></div>`).join('')}</div>`:''}
@@ -738,6 +753,45 @@ function lsim(q,t){const qw=q.toLowerCase().split(/\s+/);let h=0;for(const w of 
 function gMethod(s){if(!s)return'Cash';if(/phone\s*pe|pp/i.test(s))return'PhonePe';if(/upi|gpay|paytm/i.test(s))return'UPI';if(/card/i.test(s))return'Card';return'Cash';}
 function matchLocal(t){for(const pat of VP){const m=t.match(pat.re);if(m){const qty=parseInt(m[1]);const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');const method=(m[3]||'').trim();const best=items.map(i=>({i,s:lsim(name,i.name)})).sort((a,b)=>b.s-a.s)[0];if(best&&best.s>0.25)return{action:pat.action,item:best.i,qty,method:gMethod(method)};}}return null;}
 
+function showVoiceConfirm(payload){
+  // payload: {action, item, qty, method, transcript}
+  closeVoiceConfirm();
+  const isSell = payload.action === 'sell';
+  const amt = isSell ? payload.item.price * payload.qty : null;
+  const overlay = document.createElement('div');
+  overlay.className = 'vc-overlay';
+  overlay.id = 'voice-confirm';
+  overlay.innerHTML = `
+    <div class="vc-card">
+      <div class="vc-handle"></div>
+      <div class="vc-heard">I heard you say…</div>
+      <div class="vc-main">${isSell ? '🛍 Sold' : '📦 Restocked'} ${payload.qty} × ${payload.item.name}</div>
+      ${isSell ? `<div class="vc-amount">= ${INR(amt)}</div>` : `<div class="vc-amount restock">${payload.qty} added to stock</div>`}
+      <div class="vc-sub">${isSell
+        ? `Payment: <strong>${payload.method}</strong> · Stock: ${payload.item.stock} → <strong>${Math.max(0, payload.item.stock - payload.qty)}</strong>`
+        : `Stock: ${payload.item.stock} → <strong>${payload.item.stock + payload.qty}</strong>`
+      }</div>
+      <div class="vc-btns">
+        <button class="vc-yes" onclick="confirmVoice()">✓ &nbsp;Yes, save it!</button>
+        <button class="vc-no" onclick="closeVoiceConfirm()">✕ &nbsp;No, redo</button>
+      </div>
+    </div>`;
+  document.getElementById('app').appendChild(overlay);
+  window._pendingVoice = payload;
+}
+
+function confirmVoice(){
+  if(!window._pendingVoice) return;
+  applyVoice(window._pendingVoice);
+  closeVoiceConfirm();
+}
+
+function closeVoiceConfirm(){
+  const el = document.getElementById('voice-confirm');
+  if(el) el.remove();
+  window._pendingVoice = null;
+}
+
 function applyVoice({action,item,qty,method}){
   const idx=items.findIndex(x=>x.id===item.id);if(idx<0)return;
   mutate(()=>{
@@ -754,7 +808,8 @@ function applyVoice({action,item,qty,method}){
     }
   });
   render();
-  setTimeout(()=>setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"'),4000);}
+  setTimeout(()=>{_voiceMsg='';setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"');},5000);
+}
 
 // FIX: handleMicTap catches browser errors + shows helpful messages per context
 function handleMicTap(){
@@ -767,119 +822,48 @@ function handleMicTap(){
   toggleVoice();}
 
 async function toggleVoice(){
-  // If already listening — stop immediately and bail
-  if(listening){
-    clearTimeout(voiceTimeout);
-    try{if(recognition)recognition.abort();}catch(e){}
-    stopListening();
-    setVS('Tap the mic — say "sold 2 gold bangles" or "restocked 10 kurtas"');
-    return;}
-
+  if(listening){if(recognition)recognition.stop();return;}
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){handleMicTap();return;}
-
-  // Guard: don't stack multiple recognitions
-  try{if(recognition)recognition.abort();}catch(e){}
-  recognition=new SR();
-  recognition.lang='en-IN';
-  recognition.continuous=false;
-  recognition.interimResults=false;
-  recognition.maxAlternatives=1;
-
-  let resultHandled=false;
-
-  recognition.onstart=()=>{
-    listening=true;
-    document.getElementById('globalMic').classList.add('listening');
-    setVS('<span class="spinner"></span> Listening… (tap mic to stop)');
-    // Hard 8-second kill-switch so it never hangs
-    voiceTimeout=setTimeout(()=>{
-      if(listening){
-        try{recognition.abort();}catch(e){}
-        stopListening();
-        setVS('Timed out. Try again and speak clearly.');
-      }
-    },8000);
-  };
-
+  recognition=new SR();recognition.lang='en-IN';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onstart=()=>{listening=true;document.getElementById('globalMic').classList.add('listening');setVS('<span class="spinner"></span> Listening…');};
   recognition.onerror=(e)=>{
-    clearTimeout(voiceTimeout);
     stopListening();
     if(e.error==='not-allowed'||e.error==='permission-denied'){
-      setVS('Mic blocked — allow microphone in Settings → Safari → Microphone.');
+      setVS('Mic access denied. Allow microphone in Settings → Safari → Microphone.');
     }else if(e.error==='no-speech'){
-      setVS('Nothing heard — tap mic and speak clearly.');
-    }else if(e.error==='aborted'){
-      // User tapped stop — no message needed, already reset above
+      setVS('Nothing heard. Try speaking clearly and try again.');
     }else{
-      setVS('Mic error. Try again.');
-    }
-  };
-
-  recognition.onend=()=>{
-    clearTimeout(voiceTimeout);
-    stopListening();
-  };
-
+      setVS('Could not start mic. Try again.');
+    }};
+  recognition.onend=()=>stopListening();
   recognition.onresult=async(e)=>{
-    if(resultHandled)return;
-    resultHandled=true;
-    clearTimeout(voiceTimeout);
-    try{recognition.abort();}catch(err){}
+    const t=e.results[0][0].transcript;
     stopListening();
-
-    const t=e.results[0][0].transcript.trim();
-    if(!t){setVS('Nothing heard — tap mic and try again.');return;}
-
-    setVS('⚡ Heard: "'+t+'" — matching…');
-
-    // Try local fast match first (no network needed)
+    setVS('<span class="spinner"></span> Heard: "'+t+'" — matching…');
     const local=matchLocal(t);
-    if(local){applyVoice(local);return;}
-
-    // Fallback to AI only if local fails
+    if(local){showVoiceConfirm({...local,transcript:t});setVS('Is this right? ↓');return;}
     try{
       const names=items.map(i=>i.name+' (id:'+i.id+')').join(', ');
-      const ctrl=new AbortController();
-      const aiTimeout=setTimeout(()=>ctrl.abort(),6000); // 6s max for AI
-      const resp=await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        signal:ctrl.signal,
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          model:'claude-haiku-4-5-20251001', // Use Haiku — much faster for simple parsing
-          max_tokens:120,
-          messages:[{role:'user',content:`Inventory items: ${names}\nVoice: "${t}"\nReturn ONLY JSON no markdown: {"action":"sell|restock|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]
-        })
-      });
-      clearTimeout(aiTimeout);
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:200,
+          messages:[{role:'user',content:`Inventory: ${names}. Voice command: "${t}". Return ONLY JSON: {"action":"sell|restock|set|unknown","itemId":number,"qty":number,"method":"PhonePe|Cash|UPI|Card"}`}]})});
       const data=await resp.json();
-      const raw=(data.content||[]).map(c=>c.text||'').join('').replace(/```json|```/g,'').trim();
-      const result=JSON.parse(raw);
-      if(result.action==='unknown'||!result.itemId){
-        setVS('Not sure what you meant. Try: "sold 2 earrings" or "got 10 bangles"');
-        return;
-      }
+      const raw=data.content.map(c=>c.text||'').join('');
+      const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      if(result.action==='unknown'){setVS('Could not understand. Try: "sold 3 earrings" or "received 20 kurtas"');return;}
       const it=items.find(x=>x.id===result.itemId);
-      if(!it){setVS('Item not found in inventory.');return;}
-      applyVoice({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash'});
-    }catch(err){
-      if(err.name==='AbortError'){setVS('AI took too long — log manually via + Log sale.');}
-      else{setVS('Could not match. Try: "sold 2 bangles" or "restocked 10 kurtas"');}
-    }
-  };
+      if(!it){setVS('Item not found. Check spelling and try again.');return;}
+      showVoiceConfirm({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash',transcript:t});
+      setVS('Is this right? ↓');
+    }catch(err){setVS('Log manually if needed — tap + Log sale.');}};
 
+  // FIX: wrap start() in try-catch for permission errors on some devices
   try{recognition.start();}
-  catch(err){stopListening();setVS('Mic blocked — check browser permissions.');}
-}
+  catch(err){stopListening();setVS('Mic blocked. Check browser permissions.');}}
 
-function stopListening(){
-  listening=false;
-  clearTimeout(voiceTimeout);
-  const m=document.getElementById('globalMic');
-  if(m)m.classList.remove('listening');
-}
-function setVS(msg){const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
+function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
+function setVS(msg){_voiceMsg=msg;const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
 
 // ── CLOCK ─────────────────────────────────────────────────────────────────────
 function updateClock(){const cl=document.getElementById('clock');if(cl)cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
