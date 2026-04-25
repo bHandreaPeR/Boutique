@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Beauty & Beads">
+<meta name="theme-color" content="#1a0a2e">
+<title>Beauty & Beads Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1a0a2e;--cream:#fdf6ec;--rose:#e8627a;--rose-light:#fde8ec;--gold:#c9963a;--gold-light:#fdf0d5;--sage:#4a7c6f;--sage-light:#e4f0ed;--lavender:#7b5ea7;--lavender-light:#efe9f7;--blush:#f5d0d8;--surface:#fff;--surface2:#faf7f4;--border:rgba(26,10,46,.09);--border-med:rgba(26,10,46,.16);--text:#1a0a2e;--text2:#6b5a7e;--text3:#a0909c;--radius:14px;--radius-sm:9px;--tr:.22s cubic-bezier(.4,0,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#111}
+body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);overscroll-behavior:none}
+#app{max-width:430px;margin:0 auto;height:100dvh;display:flex;flex-direction:column;background:var(--cream);position:relative;overflow:hidden}
+.header{background:var(--ink);padding:env(safe-area-inset-top,14px) 18px 0;flex-shrink:0;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;top:-50px;right:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(201,150,58,.18) 0%,transparent 68%);pointer-events:none}
+.header::after{content:'';position:absolute;bottom:-24px;left:10px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,rgba(232,98,122,.15) 0%,transparent 70%);pointer-events:none}
+.status-bar{display:flex;justify-content:space-between;color:rgba(255,255,255,.4);font-size:11px;padding-bottom:6px}
+.header-main{display:flex;align-items:flex-end;justify-content:space-between;padding-bottom:16px}
+.brand-name{font-family:'Fraunces',Georgia,serif;font-size:20px;color:#fff;line-height:1.1}
+.brand-name em{color:var(--gold);font-style:italic}
+.brand-sub{font-size:10px;color:rgba(255,255,255,.38);letter-spacing:1.4px;text-transform:uppercase;margin-top:2px}
+.mic-btn{width:38px;height:38px;border-radius:50%;background:var(--rose);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(232,98,122,.38);flex-shrink:0;transition:transform var(--tr),box-shadow var(--tr);position:relative;-webkit-appearance:none}
+.mic-btn:active{transform:scale(.9)}
+.mic-btn.listening{background:#e84040;animation:mic-ring 1.2s infinite}
+@keyframes mic-ring{0%{box-shadow:0 0 0 0 rgba(232,64,64,.5)}70%{box-shadow:0 0 0 12px rgba(232,64,64,0)}100%{box-shadow:0 0 0 0 rgba(232,64,64,0)}}
+.safari-banner{background:#c9963a;color:#fff;font-size:12px;font-weight:600;padding:8px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;flex-shrink:0}
+.safari-banner span{flex:1;line-height:1.4}
+.nav{background:var(--ink);display:flex;align-items:stretch;border-top:1px solid rgba(255,255,255,.05);flex-shrink:0;padding-bottom:env(safe-area-inset-bottom,0)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 3px 10px;cursor:pointer;border:none;background:transparent;font-size:9px;font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:.6px;text-transform:uppercase;color:rgba(255,255,255,.28);gap:3px;position:relative;transition:color var(--tr)}
+.nav-item.active{color:var(--gold)}
+.nav-bar{position:absolute;top:0;left:50%;transform:translateX(-50%);width:0;height:2px;background:var(--gold);border-radius:0 0 3px 3px;transition:width .3s cubic-bezier(.34,1.56,.64,1)}
+.nav-item.active .nav-bar{width:26px}
+.nav-icon{font-size:17px;line-height:1}
+.nav-badge{position:absolute;top:5px;right:calc(50% - 17px);background:var(--rose);color:#fff;border-radius:8px;font-size:9px;padding:1px 4px;min-width:14px;text-align:center;font-weight:600}
+.content{flex:1;overflow:hidden;position:relative}
+.section{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;opacity:0;transform:translateY(8px);transition:opacity var(--tr),transform var(--tr);pointer-events:none}
+.section.active{opacity:1;transform:translateY(0);pointer-events:auto}
+.pad{padding:16px}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.mcard{background:var(--surface);border-radius:var(--radius);padding:13px 14px;border:1px solid var(--border);position:relative;overflow:hidden;transition:transform var(--tr)}
+.mcard:active{transform:scale(.97)}
+.mcard-dot{position:absolute;bottom:-14px;right:-14px;width:56px;height:56px;border-radius:50%;background:var(--ca,rgba(201,150,58,.07))}
+.mcard-label{font-size:10px;text-transform:uppercase;letter-spacing:1.1px;color:var(--text3);margin-bottom:4px;font-weight:500}
+.mcard-val{font-family:'Fraunces',serif;font-size:19px;font-weight:600}
+.pos{color:var(--sage)}.warn{color:var(--gold)}.neg{color:var(--rose)}
+.sec-label{font-size:10px;text-transform:uppercase;letter-spacing:1.6px;color:var(--text3);margin-bottom:10px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sec-label::before{content:'';flex:0 0 12px;height:1px;background:var(--border-med)}
+.voice-bar{background:linear-gradient(135deg,#f0eafe,#fae8ee);border-radius:var(--radius);padding:10px 13px;display:flex;align-items:center;gap:10px;margin-bottom:14px;border:1px solid rgba(123,94,167,.12)}
+.voice-text{font-size:12px;color:var(--lavender);flex:1;line-height:1.5;font-weight:500}
+.btn{height:32px;padding:0 13px;border-radius:40px;border:1px solid var(--border-med);background:var(--surface);color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:500;transition:transform .12s,background .15s;-webkit-appearance:none}
+.btn:active{transform:scale(.94)}
+.btn.pri{background:var(--ink);color:var(--gold);border-color:var(--ink);box-shadow:0 2px 10px rgba(26,10,46,.18)}
+.btn.sm{height:27px;padding:0 10px;font-size:11px}
+.btn.xs{height:23px;padding:0 8px;font-size:10px}
+.btn.danger{color:var(--rose);border-color:rgba(232,98,122,.28)}
+.pill{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600}
+.pill.low{background:#fde8ec;color:#b02040}.pill.ok{background:var(--sage-light);color:var(--sage)}
+.pill.pp{background:var(--lavender-light);color:var(--lavender)}.pill.cash{background:var(--sage-light);color:var(--sage)}
+.pill.upi{background:#e0f0fc;color:#1a60a0}.pill.debit{background:#fde8ec;color:#b02040}.pill.card{background:var(--gold-light);color:var(--gold)}
+.pill.service{background:var(--rose-light);color:#b02040}
+.inv-layout{display:flex;height:100%;min-height:calc(100dvh - 165px)}
+.cat-pane{width:66px;flex-shrink:0;background:var(--ink);display:flex;flex-direction:column;padding:6px 0;overflow-y:auto}
+.cat-btn{display:flex;flex-direction:column;align-items:center;padding:10px 3px;cursor:pointer;border:none;background:transparent;gap:4px;border-left:3px solid transparent;width:100%;transition:background var(--tr),border-color var(--tr)}
+.cat-btn.active{background:rgba(255,255,255,.06);border-left-color:var(--gold)}
+.cat-btn-icon{font-size:18px;transition:transform .2s}
+.cat-btn.active .cat-btn-icon{transform:scale(1.1)}
+.cat-btn-lbl{font-size:8px;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:.4px;text-align:center;line-height:1.3;transition:color var(--tr)}
+.cat-btn.active .cat-btn-lbl{color:var(--gold);font-weight:600}
+.cat-add-btn{display:flex;flex-direction:column;align-items:center;padding:10px 3px;cursor:pointer;border:none;background:transparent;gap:4px;width:100%;margin-top:auto;border-top:1px solid rgba(255,255,255,.06);transition:opacity .2s}
+.cat-add-btn:active{opacity:.6}
+.cat-add-c{width:30px;height:30px;border-radius:50%;border:1.5px dashed rgba(201,150,58,.38);color:rgba(201,150,58,.55);display:flex;align-items:center;justify-content:center;font-size:17px}
+.cat-add-lbl{font-size:7.5px;color:rgba(255,255,255,.22);text-transform:uppercase;letter-spacing:.4px}
+.inv-main{flex:1;overflow-y:auto;padding:11px}
+.inv-row{display:flex;align-items:flex-start;gap:9px;padding:10px 0;border-bottom:1px solid var(--border);animation:row-in .2s ease both}
+.inv-row:last-child{border-bottom:none}
+@keyframes row-in{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+.inv-bar{width:3px;border-radius:3px;align-self:stretch;min-height:36px;flex-shrink:0}
+.inv-info{flex:1;min-width:0}
+.inv-name{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.inv-brand{font-size:10px;color:var(--lavender);font-weight:600;margin-top:1px}
+.inv-meta{font-size:11px;color:var(--text3);margin-top:1px}
+.inv-right{text-align:right;flex-shrink:0}
+.inv-qty{font-family:'Fraunces',serif;font-size:16px;font-weight:600}
+.sale-row{padding:10px 0;border-bottom:1px solid var(--border);animation:row-in .2s ease both}
+.sale-row:last-child{border-bottom:none}
+.sale-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.sale-name{font-size:13px;font-weight:600;flex:1}
+.sale-amt{font-size:14px;font-weight:600;font-family:'Fraunces',serif;white-space:nowrap}
+.sale-meta{font-size:11px;color:var(--text3);margin-top:4px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pending-card{border-radius:var(--radius);border:1px solid rgba(201,150,58,.2);background:linear-gradient(135deg,#fffdf5,var(--cream));padding:12px 13px;margin-bottom:9px;animation:row-in .25s ease both;transition:opacity .28s,transform .28s}
+.pending-card.dismissing{opacity:0;transform:translateX(40px)}
+.pending-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.pending-title{font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.7px}
+.pending-amt{font-family:'Fraunces',serif;font-size:17px;font-weight:600}
+.pending-amt.credit{color:var(--sage)}.pending-amt.debit{color:var(--rose)}
+.pending-meta{font-size:11px;color:var(--text3);margin-bottom:9px}
+.inbox-banner{background:linear-gradient(135deg,var(--ink),#2a1248);border-radius:var(--radius);padding:12px 13px;margin-bottom:13px;display:flex;align-items:center;gap:12px}
+.inbox-title{font-size:13px;font-weight:600;color:var(--gold);margin-bottom:1px}
+.inbox-sub{font-size:11px;color:rgba(255,255,255,.36)}
+.pnl-box{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;margin-bottom:10px;position:relative;overflow:hidden;animation:row-in .22s ease both}
+.pnl-accent{position:absolute;top:0;left:0;width:3px;height:100%}
+.pnl-box-title{font-size:9px;text-transform:uppercase;letter-spacing:1.6px;color:var(--text3);margin-bottom:9px;font-weight:600}
+.pnl-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.pnl-line:last-child{border-bottom:none}
+.pnl-label{color:var(--text2)}.pnl-val{font-weight:600}
+.pnl-total{display:flex;justify-content:space-between;font-size:14px;font-weight:600;padding-top:11px;border-top:1.5px solid var(--border-med);margin-top:4px}
+.pnl-total .pnl-val{font-family:'Fraunces',serif;font-size:19px}
+.bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:5px 0 3px}
+.bar-fill{height:100%;border-radius:3px;transition:width .8s cubic-bezier(.34,1.2,.64,1)}
+.ptabs{display:flex;gap:3px;background:var(--surface2);border-radius:40px;padding:3px;margin-bottom:13px}
+.ptab{flex:1;text-align:center;padding:5px 2px;border-radius:40px;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--text3);font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;transition:all .2s}
+.ptab.active{background:var(--ink);color:var(--gold);font-weight:600}
+.act-row{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.act-row:last-child{border-bottom:none}
+.act-dot{width:7px;height:7px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act-text{font-size:12px;flex:1;line-height:1.45}
+.act-time{font-size:10px;color:var(--text3);white-space:nowrap;margin-top:2px}
+.conn-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;margin-bottom:9px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:transform var(--tr);animation:row-in .2s ease both}
+.conn-card:active{transform:scale(.97)}
+.conn-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.conn-info{flex:1;min-width:0}
+.conn-name{font-size:13px;font-weight:600;margin-bottom:2px}
+.conn-desc{font-size:11px;color:var(--text3);line-height:1.4}
+.conn-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;white-space:nowrap}
+.conn-badge.ok{background:var(--sage-light);color:var(--sage)}
+.conn-badge.off{background:#f0f0ee;color:var(--text3)}
+.conn-badge.beta{background:var(--gold-light);color:var(--gold)}
+.conn-badge.danger{background:var(--rose-light);color:#b02040}
+.sheet-overlay{position:absolute;inset:0;background:rgba(26,10,46,.52);z-index:50;display:flex;align-items:flex-end;overflow:hidden;animation:ov-in .2s ease}
+@keyframes ov-in{from{background:transparent}to{background:rgba(26,10,46,.52)}}
+.sheet{background:var(--cream);border-radius:20px 20px 0 0;padding:14px 16px 30px;width:100%;max-height:92%;overflow-y:auto;animation:sh-up .3s cubic-bezier(.34,1.2,.64,1)}
+@keyframes sh-up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:38px;height:3.5px;background:var(--border-med);border-radius:2px;margin:0 auto 14px}
+.sheet-title{font-family:'Fraunces',serif;font-size:17px;font-weight:600;margin-bottom:13px;color:var(--ink)}
+.frow{margin-bottom:10px;position:relative}
+.frow label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);margin-bottom:4px;font-weight:600}
+.frow input,.frow select,.frow textarea{width:100%;padding:9px 11px;border:1px solid var(--border-med);border-radius:var(--radius-sm);background:var(--surface);color:var(--text);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color var(--tr),box-shadow var(--tr);-webkit-appearance:none;appearance:none}
+.frow select{-webkit-appearance:auto;appearance:auto}
+.frow input:focus,.frow select:focus,.frow textarea:focus{border-color:var(--lavender);box-shadow:0 0 0 3px rgba(123,94,167,.1)}
+.frow textarea{resize:vertical;min-height:70px;-webkit-appearance:none}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sactions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.search-inp{width:100%;height:34px;padding:0 11px;border:1px solid var(--border-med);border-radius:40px;background:var(--surface);color:var(--text);font-size:12px;font-family:'Plus Jakarta Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color var(--tr);-webkit-appearance:none}
+.search-inp:focus{border-color:var(--lavender)}
+.empty{padding:28px 16px;text-align:center;color:var(--text3);font-size:13px}
+.spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--lavender);border-top-color:transparent;border-radius:50%;animation:spin .55s linear infinite;vertical-align:middle;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.vc-overlay{position:absolute;inset:0;z-index:60;background:rgba(26,10,46,.65);display:flex;align-items:flex-end;animation:ov-in .2s ease;backdrop-filter:blur(2px)}
+.vc-card{background:var(--cream);border-radius:24px 24px 0 0;width:100%;padding:22px 20px 40px;animation:sh-up .35s cubic-bezier(.34,1.2,.64,1)}
+.vc-handle{width:38px;height:3.5px;background:var(--border-med);border-radius:2px;margin:0 auto 18px}
+.vc-heard{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--text3);font-weight:600;margin-bottom:8px}
+.vc-main{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:600;color:var(--ink);line-height:1.25;margin-bottom:6px}
+.vc-sub{font-size:14px;color:var(--text2);margin-bottom:22px;line-height:1.5}
+.vc-amount{display:inline-block;background:var(--sage-light);color:var(--sage);border-radius:10px;padding:4px 12px;font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:22px}
+.vc-amount.restock{background:var(--lavender-light);color:var(--lavender)}
+.vc-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vc-yes{height:62px;border-radius:16px;border:none;background:var(--sage);color:#fff;font-size:18px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s;box-shadow:0 4px 16px rgba(74,124,111,.3)}
+.vc-yes:active{transform:scale(.95)}
+.vc-no{height:52px;border-radius:14px;border:1.5px solid var(--border-med);background:var(--surface);color:var(--text3);font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:transform .12s}
+.vc-no:active{transform:scale(.95)}
+.note-box{background:var(--lavender-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:var(--lavender);margin-bottom:10px;border:1px solid rgba(123,94,167,.12);line-height:1.55;font-weight:500}
+.warn-box{background:var(--rose-light);border-radius:var(--radius-sm);padding:8px 10px;font-size:11px;color:#a02030;margin-bottom:10px;border:1px solid rgba(232,98,122,.18);line-height:1.55}
+.info-box{background:var(--gold-light);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#7a5010;margin-bottom:12px;border:1px solid rgba(201,150,58,.2);line-height:1.6}
+.section-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.low-card{background:linear-gradient(135deg,#fde8ec,#fff5f7);border-radius:var(--radius);padding:11px 13px;margin-bottom:13px;border:1px solid rgba(232,98,122,.14)}
+.suggestions{position:absolute;top:100%;left:0;right:0;z-index:100;background:var(--surface);border:1px solid var(--border-med);border-radius:0 0 var(--radius-sm) var(--radius-sm);max-height:148px;overflow-y:auto;box-shadow:0 8px 24px rgba(26,10,46,.14);animation:sugg-in .14s ease}
+@keyframes sugg-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.sugg-item{padding:9px 11px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--border);color:var(--text)}
+.sugg-item:last-child{border-bottom:none}
+.sugg-item:hover,.sugg-item:active{background:var(--surface2)}
+.sugg-item.create{color:var(--sage);font-weight:600}
+.step-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ink);color:var(--gold);font-size:11px;font-weight:700;margin-right:8px;flex-shrink:0}
+.step-text{font-size:13px;line-height:1.5;color:var(--text)}
+/* ── HOME ENHANCEMENTS ── */
+.greeting-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.greeting-text{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--ink)}
+.greeting-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.greeting-date{font-size:11px;color:var(--text3);text-align:right;line-height:1.6}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.action-btn{height:54px;border-radius:var(--radius);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;transition:transform .12s,box-shadow .12s;-webkit-appearance:none}
+.action-btn:active{transform:scale(.96)}
+.action-btn.sell{background:var(--ink);color:var(--gold);box-shadow:0 4px 16px rgba(26,10,46,.2)}
+.action-btn.service{background:var(--rose);color:#fff;box-shadow:0 4px 16px rgba(232,98,122,.28)}
+.sell-again-row{display:flex;gap:7px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sell-again-row::-webkit-scrollbar{display:none}
+.sa-chip{flex-shrink:0;background:var(--surface);border:1px solid var(--border-med);border-radius:40px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:transform .12s,background .15s;-webkit-appearance:none}
+.sa-chip:active{transform:scale(.93);background:var(--surface2)}
+.sa-chip-name{font-size:12px;font-weight:600;color:var(--text);white-space:nowrap}
+.sa-chip-price{font-size:10px;color:var(--text3);white-space:nowrap}
+.today-sale-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);gap:9px}
+.today-sale-row:last-child{border-bottom:none}
+.today-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.today-sale-name{font-size:12px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.today-sale-meta{font-size:10px;color:var(--text3)}
+.today-sale-amt{font-size:13px;font-weight:600;font-family:'Fraunces',serif;color:var(--sage);flex-shrink:0}
+/* ── NUMPAD ── */
+.numpad-display{background:var(--ink);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.numpad-val{font-family:'Fraunces',serif;font-size:36px;font-weight:600;color:#fff;line-height:1}
+.numpad-label{font-size:11px;color:rgba(255,255,255,.4);text-align:right;line-height:1.6}
+.numpad-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.numpad-key{height:56px;border-radius:12px;border:1px solid var(--border-med);background:var(--surface);color:var(--text);font-size:20px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .1s,background .1s;-webkit-appearance:none}
+.numpad-key:active{transform:scale(.91);background:var(--surface2)}
+.numpad-key.del{font-size:17px;color:var(--rose)}
+.numpad-key.zero{grid-column:span 2}
+/* ── PAYMENT PICKER ── */
+.pay-methods{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.pay-btn{height:46px;border-radius:10px;border:1px solid var(--border-med);background:var(--surface);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;font-family:'Plus Jakarta Sans',sans-serif;font-weight:600;color:var(--text3);transition:all .15s;-webkit-appearance:none}
+.pay-btn:active{transform:scale(.93)}
+.pay-btn.selected{border-color:var(--lavender);background:var(--lavender-light);color:var(--lavender)}
+.pay-btn-icon{font-size:16px}
+/* ── QUICK SELL ITEM LIST ── */
+.qs-item-list{display:flex;flex-direction:column;gap:0;margin-bottom:10px;max-height:38vh;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface)}
+.qs-item-row{display:flex;align-items:center;padding:11px 13px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s;gap:10px}
+.qs-item-row:last-child{border-bottom:none}
+.qs-item-row:active{background:var(--surface2)}
+.qs-item-row.selected{background:var(--lavender-light);border-left:3px solid var(--lavender)}
+.qs-item-name{font-size:13px;font-weight:600;flex:1}
+.qs-item-price{font-size:13px;color:var(--sage);font-weight:600;font-family:'Fraunces',serif}
+.qs-item-stock{font-size:10px;color:var(--text3)}
+/* ── SERVICE CARDS ── */
+.svc-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:12px 13px;margin-bottom:8px;cursor:pointer;transition:transform var(--tr);animation:row-in .2s ease both}
+.svc-card:active{transform:scale(.97)}
+.svc-hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:5px}
+.svc-name{font-size:14px;font-weight:600}
+.svc-icon{font-size:18px;flex-shrink:0}
+.svc-variants{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.svc-variant{background:var(--surface2);border:1px solid var(--border-med);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600;cursor:pointer;transition:all .12s;-webkit-appearance:none;font-family:'Plus Jakarta Sans',sans-serif;color:var(--text2)}
+.svc-variant.active{background:var(--rose);color:#fff;border-color:var(--rose)}
+.svc-meta{font-size:11px;color:var(--text3)}
+/* ── DISCOUNT ROW ── */
+.discount-row{display:flex;align-items:center;gap:8px;background:var(--gold-light);border-radius:var(--radius-sm);padding:8px 11px;margin-bottom:10px;border:1px solid rgba(201,150,58,.2)}
+.disc-label{font-size:12px;color:#7a5010;flex:1}
+.disc-final{font-family:'Fraunces',serif;font-size:18px;font-weight:600;color:var(--sage)}
+/* ── TOAST ── */
+.toast{position:absolute;bottom:80px;left:16px;right:16px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:80;font-size:13px;font-weight:500;animation:toast-in .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 4px 20px rgba(26,10,46,.3)}
+@keyframes toast-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.toast-amt{font-family:'Fraunces',serif;font-size:17px;color:var(--gold);margin-left:auto}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="status-bar"><span id="clock">9:41 AM</span><span>●●● WiFi 🔋</span></div>
+    <div class="header-main">
+      <div>
+        <div class="brand-name"><em>Beauty</em> &amp; Beads</div>
+        <div class="brand-sub" id="hdr-sub">Your business dashboard</div>
+      </div>
+      <button class="mic-btn" id="globalMic" onclick="handleMicTap()">🎙</button>
+    </div>
+  </div>
+  <div id="safari-banner" style="display:none" class="safari-banner" onclick="showSafariHelp()">
+    <span>⚠ Open in Safari for voice &amp; full features — tap here for instructions</span><span>→</span>
+  </div>
+  <div class="content">
+    <div id="sec-home"      class="section active"><div class="pad" id="home-pad"></div></div>
+    <div id="sec-inventory" class="section"><div class="inv-layout"><div class="cat-pane" id="cat-pane"></div><div class="inv-main" id="inv-main"></div></div></div>
+    <div id="sec-sales"     class="section"><div class="pad" id="sales-pad"></div></div>
+    <div id="sec-services"  class="section"><div class="pad" id="services-pad"></div></div>
+    <div id="sec-pnl"       class="section"><div class="pad" id="pnl-pad"></div></div>
+    <div id="sec-connect"   class="section"><div class="pad" id="connect-pad"></div></div>
+  </div>
+  <div class="nav">
+    <button class="nav-item active" onclick="sw('home',this)"><div class="nav-bar"></div><span class="nav-icon">✦</span><span>Home</span></button>
+    <button class="nav-item" onclick="sw('inventory',this)"><div class="nav-bar"></div><span class="nav-icon">◈</span><span>Stock</span></button>
+    <button class="nav-item" onclick="sw('services',this)"><div class="nav-bar"></div><span class="nav-icon">✂</span><span>Services</span></button>
+    <button class="nav-item" onclick="sw('sales',this)" id="nav-sales"><div class="nav-bar"></div><span class="nav-icon">◉</span><span>Sales</span><span class="nav-badge" id="inbox-badge" style="display:none">0</span></button>
+    <button class="nav-item" onclick="sw('pnl',this)"><div class="nav-bar"></div><span class="nav-icon">◈</span><span>P&amp;L</span></button>
+  </div>
+</div>
+<script>
+const INR=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const tsNow=()=>new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+', '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const todayStr=()=>new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const safe=s=>(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+const ua=navigator.userAgent||'';
+const isInAppBrowser=/FBAN|FBAV|Instagram|WhatsApp|wv\b|WebView/i.test(ua)||((/iPhone|iPad/i.test(ua))&&!/Safari/i.test(ua));
+const hasVoice=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+if(isInAppBrowser)setTimeout(()=>{const b=document.getElementById('safari-banner');if(b)b.style.display='flex';},400);
+
+function showSafariHelp(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Open in Safari</div><div class="info-box">You're in WhatsApp's browser. Voice commands only work in Safari.</div><div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">1</span><span class="step-text">Tap the <strong>Share icon</strong> (↑) at the bottom</span></div></div><div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">2</span><span class="step-text">Tap <strong>"Open in Safari"</strong></span></div></div><div class="step-card"><div style="display:flex;align-items:flex-start;gap:8px"><span class="step-num">3</span><span class="step-text">In Safari: Share → <strong>"Add to Home Screen"</strong> to save as an app!</span></div></div><div class="sactions"><button class="btn pri" onclick="closeSheet()">Got it</button></div>`);}
+
+// ── PERSISTENCE ───────────────────────────────────────────────────────────────
+function save(){try{
+  localStorage.setItem('bb_cats',JSON.stringify(categories));
+  localStorage.setItem('bb_items',JSON.stringify(items));
+  localStorage.setItem('bb_sales',JSON.stringify(sales));
+  localStorage.setItem('bb_pending',JSON.stringify(pending));
+  localStorage.setItem('bb_activity',JSON.stringify(activity.slice(0,80)));
+  localStorage.setItem('bb_services',JSON.stringify(services));
+  localStorage.setItem('bb_ids',JSON.stringify({nextItemId,nextSaleId,nextSvcId}));
+}catch(e){console.warn('Storage full',e);}}
+function loadData(){try{
+  const c=localStorage.getItem('bb_cats'),i=localStorage.getItem('bb_items'),s=localStorage.getItem('bb_sales'),p=localStorage.getItem('bb_pending'),a=localStorage.getItem('bb_activity'),sv=localStorage.getItem('bb_services'),ids=localStorage.getItem('bb_ids');
+  if(c)categories=JSON.parse(c);if(i)items=JSON.parse(i);if(s)sales=JSON.parse(s);if(p)pending=JSON.parse(p);if(a)activity=JSON.parse(a);if(sv)services=JSON.parse(sv);
+  if(ids){const o=JSON.parse(ids);nextItemId=o.nextItemId||nextItemId;nextSaleId=o.nextSaleId||nextSaleId;nextSvcId=o.nextSvcId||nextSvcId;}
+}catch(e){console.warn('Load error',e);}}
+function mutate(fn){fn();save();refreshLists();}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let categories=[{id:'J',icon:'💎',label:'Jewellery',color:'#7b5ea7'},{id:'C',icon:'👗',label:'Clothing',color:'#4a7c6f'},{id:'B',icon:'✨',label:'Beauty',color:'#c94060'},{id:'A',icon:'👜',label:'Acc.',color:'#c9963a'}];
+let items=[
+  {id:1,name:'Gold bangles',brand:'Tanishq-style',cat:'J',stock:14,cost:1800,price:2800,low:5,unit:'set',desc:'22kt gold plated'},
+  {id:2,name:'Silver anklets',brand:'',cat:'J',stock:3,cost:550,price:950,low:5,unit:'pair',desc:''},
+  {id:3,name:'Silk kurta',brand:'Fabindia',cat:'C',stock:8,cost:700,price:1200,low:4,unit:'piece',desc:'Medium'},
+  {id:4,name:'Rose face serum',brand:'Plum',cat:'B',stock:2,cost:200,price:480,low:5,unit:'bottle',desc:'50ml'},
+  {id:5,name:'Pearl earrings',brand:'',cat:'J',stock:11,cost:800,price:1500,low:4,unit:'pair',desc:''},
+  {id:6,name:'Cotton saree',brand:'',cat:'C',stock:6,cost:900,price:1800,low:3,unit:'piece',desc:''},
+  {id:7,name:'Hair colour tube',brand:'Schwarzkopf',cat:'B',stock:20,cost:180,price:0,low:5,unit:'tube',desc:'Various shades'},
+  {id:8,name:'Hair oil 100ml',brand:'Mamaearth',cat:'B',stock:15,cost:80,price:180,low:6,unit:'bottle',desc:''},
+  {id:9,name:'Oxidised necklace',brand:'',cat:'J',stock:7,cost:400,price:850,low:3,unit:'piece',desc:''},
+  {id:10,name:'Mehndi cone',brand:'',cat:'B',stock:30,cost:25,price:0,low:10,unit:'cone',desc:'Ready to use'},
+];
+let nextItemId=11;
+
+// ── SERVICES — the heart of this update ───────────────────────────────────────
+// A service has: name, icon, variants [{label, price}], materialItemId (optional inventory item used), materialQty
+let services=[
+  {id:1,name:'Hair Colour',icon:'🎨',variants:[{label:'Basic',price:2000},{label:'Premium',price:4000},{label:'Highlights',price:3500}],materialItemId:7,materialQty:1,desc:'Includes wash & blow-dry'},
+  {id:2,name:'Haircut & Styling',icon:'✂️',variants:[{label:'Cut only',price:500},{label:'Cut + Blowdry',price:800},{label:'Cut + Setting',price:1000}],materialItemId:0,materialQty:0,desc:''},
+  {id:3,name:'Facial',icon:'🌸',variants:[{label:'Basic clean-up',price:600},{label:'D-Tan facial',price:1200},{label:'Premium glow',price:2000}],materialItemId:4,materialQty:1,desc:'Includes steam'},
+  {id:4,name:'Mehndi',icon:'🌿',variants:[{label:'Hands only',price:500},{label:'Hands + feet',price:900},{label:'Bridal full',price:3500}],materialItemId:10,materialQty:2,desc:'Rajasthani style'},
+  {id:5,name:'Waxing',icon:'💆',variants:[{label:'Half legs',price:300},{label:'Full legs',price:500},{label:'Full body',price:1200}],materialItemId:0,materialQty:0,desc:''},
+  {id:6,name:'Blowdry & Setting',icon:'💨',variants:[{label:'Regular',price:400},{label:'Occasion',price:700}],materialItemId:0,materialQty:0,desc:''},
+];
+let nextSvcId=7;
+
+let sales=[
+  {id:1,item:'Gold bangles',qty:2,salePrice:2800,amount:5600,cost:3600,method:'PhonePe',note:'',time:'10:30 AM, 10 Apr',type:'sale'},
+  {id:2,item:'Pearl earrings',qty:1,salePrice:1500,amount:1500,cost:800,method:'Cash',note:'',time:'11:15 AM, 10 Apr',type:'sale'},
+  {id:3,item:'Hair Colour — Premium',qty:1,salePrice:4000,amount:3600,cost:180,method:'PhonePe',note:'10% discount',time:'2:00 PM, 10 Apr',type:'service'},
+];
+let nextSaleId=4;
+let pending=[
+  {id:'p1',rawDesc:'PhonePe Txn #PP2948',amount:4750,type:'credit',time:'8:55 AM, 10 Apr'},
+  {id:'p2',rawDesc:'PhonePe Txn #PP2891',amount:2200,type:'credit',time:'3:10 PM, 9 Apr'},
+];
+let activity=[
+  {t:'service',text:'Hair Colour (Premium) — ₹3,600 via PhonePe',time:'2:00 PM, 10 Apr'},
+  {t:'sale',text:'Sold 2 × Gold bangles via PhonePe',time:'10:30 AM, 10 Apr'},
+];
+loadData();
+
+let itemNameList=[],brandList=[],unitList=['piece','pair','set','bottle','ml','gm','box','roll','sachet','strip','tube','cone'],descList=[],noteList=[];
+function refreshLists(){
+  itemNameList=[...new Set(items.map(i=>i.name).filter(Boolean))];
+  brandList=[...new Set(items.map(i=>i.brand).filter(Boolean))];
+  descList=[...new Set(items.map(i=>i.desc).filter(Boolean))];
+  noteList=[...new Set(sales.map(s=>s.note).filter(Boolean))];
+  items.forEach(i=>{if(i.unit&&!unitList.includes(i.unit))unitList.push(i.unit);});
+}
+refreshLists();
+
+let activeCat='all',pnlPeriod='all',listening=false,recognition=null,_voiceMsg='';
+function addAct(t,text){activity.unshift({t,text,time:tsNow()});if(activity.length>80)activity.pop();}
+function catColor(id){const c=categories.find(x=>x.id===id);return c?c.color:'#888';}
+function catIcon(id){const c=categories.find(x=>x.id===id);return c?c.icon:'◆';}
+function catLabel(id){const c=categories.find(x=>x.id===id);return c?c.label:id;}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+function sw(name,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  btn.classList.add('active');
+  const subs={home:'Your business dashboard',inventory:'Manage your stock',services:'Salon & beauty services',sales:'Transactions & inbox',pnl:'Financial summary',connect:'App connections'};
+  document.getElementById('hdr-sub').textContent=subs[name]||'';
+  render();
+}
+function render(){renderHome();renderInventory();renderServices();renderSales();renderPnL();updateBadge();}
+function updateBadge(){const b=document.getElementById('inbox-badge');if(pending.length){b.style.display='block';b.textContent=pending.length;}else b.style.display='none';}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function getGreeting(){const h=new Date().getHours();if(h<12)return{g:'Good morning ☀️',sub:'Ready to open the shop?'};if(h<17)return{g:'Good afternoon 🌸',sub:'How is the day going?'};return{g:'Good evening ✨',sub:'Winding down for the day?'};}
+function topSoldItems(n){
+  const freq={};sales.filter(s=>s.type==='sale').forEach(s=>{freq[s.item]=(freq[s.item]||0)+1;});
+  const ranked=items.filter(i=>freq[i.name]&&i.stock>0&&i.price>0).sort((a,b)=>(freq[b.name]||0)-(freq[a.name]||0));
+  const rest=items.filter(i=>!freq[i.name]&&i.stock>0&&i.price>0);
+  return[...ranked,...rest].slice(0,4);
+}
+function topServices(n){
+  const freq={};sales.filter(s=>s.type==='service').forEach(s=>{const nm=s.item.split(' — ')[0];freq[nm]=(freq[nm]||0)+1;});
+  return services.slice().sort((a,b)=>(freq[b.name]||0)-(freq[a.name]||0)).slice(0,3);
+}
+function renderHome(){
+  const todayTotal=sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const todayCount=sales.filter(s=>s.time.includes(todayStr())).length;
+  const gp=sales.filter(s=>s.type==='sale'||s.type==='service').reduce((s,x)=>s+x.amount-x.cost,0);
+  const low=items.filter(i=>i.stock<=i.low);
+  const todaySales=sales.filter(s=>s.time.includes(todayStr())).slice().reverse();
+  const topP=topSoldItems(4);
+  const topS=topServices(3);
+  const {g,sub}=getGreeting();
+  const dateStr=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
+  document.getElementById('home-pad').innerHTML=`
+    <div class="greeting-row">
+      <div><div class="greeting-text">${g}</div><div class="greeting-sub">${sub}</div></div>
+      <div class="greeting-date">${dateStr}<br><span style="color:var(--ink);font-weight:600">${todayCount} transaction${todayCount!==1?'s':''} today</span></div>
+    </div>
+    <div class="action-btns">
+      <button class="action-btn sell" onclick="openQuickSell()">🛍 Quick Sell</button>
+      <button class="action-btn service" onclick="openQuickService()">✂️ Log Service</button>
+    </div>
+    ${(topS.length||topP.length)?`<div class="sec-label" style="margin-bottom:8px">Quick log</div>
+    <div class="sell-again-row">
+      ${topS.map(sv=>`<button class="sa-chip" onclick="openQuickServiceDirect(${sv.id})" style="border-color:rgba(232,98,122,.3)"><span style="font-size:15px">${sv.icon}</span><div><div class="sa-chip-name">${sv.name}</div><div class="sa-chip-price" style="color:var(--rose)">${INR(sv.variants[0].price)}+</div></div></button>`).join('')}
+      ${topP.map(i=>`<button class="sa-chip" onclick="openQuickSellItem(${i.id})"><span style="font-size:15px">${catIcon(i.cat)}</span><div><div class="sa-chip-name">${i.name}</div><div class="sa-chip-price">${INR(i.price)}</div></div></button>`).join('')}
+    </div>`:''}
+    <div class="cards2">
+      <div class="mcard" style="--ca:rgba(74,124,111,.09)"><div class="mcard-dot"></div><div class="mcard-label">Today's revenue</div><div class="mcard-val pos">${INR(todayTotal)}</div></div>
+      <div class="mcard" style="--ca:rgba(74,124,111,.09)"><div class="mcard-dot"></div><div class="mcard-label">Total profit</div><div class="mcard-val pos">${INR(gp)}</div></div>
+    </div>
+    <div class="voice-bar"><span style="font-size:17px">🎙</span><div class="voice-text" id="voice-status">${isInAppBrowser?'Open in Safari for voice — tap for instructions':(_voiceMsg||'Say "sold 2 gold bangles" or "hair colour premium"')}</div></div>
+    ${low.length?`<div class="sec-label">Low stock ⚠️</div><div class="low-card">${low.map(i=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:12px;border-bottom:1px solid rgba(232,98,122,.1)"><span>${catIcon(i.cat)} ${i.name}</span><div style="display:flex;align-items:center;gap:6px"><span style="color:#b02040;font-weight:600">${i.stock} left</span><button class="btn xs" onclick="openQuickUpdate(${i.id})">Restock</button></div></div>`).join('')}</div>`:''}
+    ${pending.length?`<div class="inbox-banner"><span style="font-size:20px">📥</span><div><div class="inbox-title">${pending.length} transactions need attention</div><div class="inbox-sub">${pending.filter(p=>p.type==='credit').length} PhonePe · ${pending.filter(p=>p.type==='debit').length} payments</div></div><button class="btn sm" style="color:var(--gold);border-color:rgba(201,150,58,.28);background:transparent;margin-left:auto;flex-shrink:0" onclick="sw('sales',document.querySelectorAll('.nav-item')[3])">Review →</button></div>`:''}
+    <div class="section-hdr"><div class="sec-label" style="margin:0">Today's log</div><button class="btn sm" onclick="sw('sales',document.querySelectorAll('.nav-item')[3])">All →</button></div>
+    <div style="background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:2px 13px;margin-bottom:14px">${todaySales.length?todaySales.map(s=>`<div class="today-sale-row"><div class="today-dot" style="background:${s.type==='service'?'var(--rose)':s.type==='purchase'?'#f08030':'var(--sage)'}"></div><div class="today-sale-name">${s.item}</div><div class="today-sale-meta">${s.method}</div><div class="today-sale-amt" style="color:${s.type==='purchase'?'var(--rose)':'var(--sage)'}">${s.type==='purchase'?'−':'+'}${INR(s.amount)}</div></div>`).join(''):'<div class="empty" style="padding:18px 0;font-size:12px">No transactions yet today — tap Quick Sell or Log Service ✦</div>'}</div>`;}
+
+// ── QUICK SELL (products) ─────────────────────────────────────────────────────
+let _qs={itemId:0,qty:1,method:'PhonePe',step:1};
+function openQuickSell(){_qs={itemId:items.find(i=>i.price>0)?.id||0,qty:1,method:'PhonePe',step:1};renderQSSheet();}
+function openQuickSellItem(id){_qs={itemId:id,qty:1,method:'PhonePe',step:2};renderQSSheet();}
+function renderQSSheet(){
+  const it=items.find(x=>x.id===_qs.itemId);
+  let html='<div class="sheet-handle"></div>';
+  if(_qs.step===1){
+    html+=`<div class="sheet-title">Which item? ✦</div><input class="search-inp" id="qs-search" placeholder="🔍 Search items…" oninput="filterQSItems(this.value)" autocomplete="off"><div class="qs-item-list" id="qs-item-list">${qsItemRows(items.filter(i=>i.price>0))}</div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button></div>`;
+  } else if(_qs.step===2){
+    html+=`<div class="sheet-title">${it?it.name:'Item'}</div>`;
+    if(it) html+=`<div style="font-size:12px;color:var(--text3);margin:-8px 0 10px">${INR(it.price)} per ${it.unit} · ${it.stock} in stock</div>`;
+    html+=numpadHTML(_qs.qty,it?`Total<br><span style="font-family:'Fraunces',serif;font-size:22px;color:var(--gold)">${INR(it.price*_qs.qty)}</span>`:'');
+    html+=`<div class="sactions"><button class="btn" onclick="_qs.step=1;renderQSSheet()">← Back</button><button class="btn pri" onclick="if(_qs.qty>0){_qs.step=3;renderQSSheet()}">Next →</button></div>`;
+  } else {
+    const amt=it?it.price*_qs.qty:0;
+    html+=`<div class="sheet-title">How did they pay?</div><div style="background:var(--sage-light);border-radius:var(--radius-sm);padding:10px 13px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:13px;font-weight:600">${it?it.name:''} × ${_qs.qty}</div><div style="font-family:'Fraunces',serif;font-size:20px;font-weight:600;color:var(--sage)">${INR(amt)}</div></div>`;
+    html+=payMethodsHTML(_qs.method);
+    html+=`<div class="sactions"><button class="btn" onclick="_qs.step=2;renderQSSheet()">← Back</button><button class="btn pri" style="height:46px;padding:0 22px;font-size:15px" onclick="confirmQuickSell()">✓ Sold! Save</button></div>`;
+  }
+  showSheet(html);
+}
+function qsItemRows(list){
+  if(!list.length)return'<div class="empty" style="padding:14px">No items match</div>';
+  return list.map(i=>`<div class="qs-item-row ${_qs.itemId===i.id?'selected':''}" onclick="_qs.itemId=${i.id};_qs.step=2;renderQSSheet()"><span style="font-size:17px">${catIcon(i.cat)}</span><div style="flex:1;min-width:0"><div class="qs-item-name">${i.name}${i.brand?` <span style="color:var(--lavender);font-size:10px">${i.brand}</span>`:''}</div><div class="qs-item-stock">${i.stock} ${i.unit} in stock</div></div><div class="qs-item-price">${INR(i.price)}</div></div>`).join('');
+}
+function filterQSItems(q){const el=document.getElementById('qs-item-list');if(!el)return;el.innerHTML=qsItemRows(items.filter(i=>i.price>0&&(i.name.toLowerCase().includes(q.toLowerCase())||(i.brand||'').toLowerCase().includes(q.toLowerCase()))));}
+function confirmQuickSell(){
+  const it=items.find(x=>x.id===_qs.itemId);if(!it||_qs.qty<1)return;
+  const qty=_qs.qty,method=_qs.method,amt=it.price*qty;
+  mutate(()=>{items[items.findIndex(x=>x.id===it.id)].stock=Math.max(0,it.stock-qty);sales.push({id:nextSaleId++,item:it.name,qty,salePrice:it.price,amount:amt,cost:it.cost*qty,method,note:'',time:tsNow(),type:'sale'});addAct('sale','Sold '+qty+' × '+it.name+' = '+INR(amt));});
+  closeSheet();showToast('✓ Sold '+qty+' × '+it.name,INR(amt));render();
+}
+
+// ── NUMPAD + PAY HELPERS ──────────────────────────────────────────────────────
+function numpadHTML(val,labelHtml){return`<div class="numpad-display"><div><div style="font-size:11px;color:rgba(255,255,255,.38);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">Quantity</div><div class="numpad-val" id="np-val">${val}</div></div><div class="numpad-label">${labelHtml||''}</div></div><div class="numpad-grid">${[1,2,3,4,5,6,7,8,9].map(n=>`<button class="numpad-key" onclick="npTap(${n})">${n}</button>`).join('')}<button class="numpad-key zero" onclick="npTap(0)">0</button><button class="numpad-key del" onclick="npDel()">⌫</button></div>`;}
+function payMethodsHTML(sel){return`<div class="pay-methods">${[['PhonePe','📱'],['Cash','💵'],['UPI','📲'],['Card','💳']].map(([m,ic])=>`<button class="pay-btn ${sel===m?'selected':''}" onclick="pickPay('${m}',this)"  id="pm-${m}"><span class="pay-btn-icon">${ic}</span>${m}</button>`).join('')}</div>`;}
+function pickPay(m,el){
+  // update both _qs and _sv
+  if(typeof _qs!=='undefined')_qs.method=m;
+  if(typeof _sv!=='undefined')_sv.method=m;
+  document.querySelectorAll('.pay-btn').forEach(b=>b.classList.remove('selected'));
+  if(el)el.classList.add('selected');
+}
+function npTap(n){
+  const src=document.getElementById('np-val');if(!src)return;
+  const cur=parseInt(src.textContent)||0;
+  const nv=cur===0?n:parseInt(String(cur)+String(n));
+  const val=Math.min(nv,999);
+  if(typeof _qs!=='undefined')_qs.qty=val;
+  if(typeof _sv!=='undefined')_sv.qty=val;
+  src.textContent=val;
+  updateNumpadTotal();
+}
+function npDel(){
+  const src=document.getElementById('np-val');if(!src)return;
+  const s=String(parseInt(src.textContent)||0);
+  const val=s.length>1?parseInt(s.slice(0,-1)):0;
+  if(typeof _qs!=='undefined')_qs.qty=val;
+  if(typeof _sv!=='undefined')_sv.qty=val;
+  src.textContent=val;
+  updateNumpadTotal();
+}
+function updateNumpadTotal(){
+  const disp=document.querySelector('.numpad-label');if(!disp)return;
+  const qty=parseInt(document.getElementById('np-val')?.textContent)||0;
+  if(typeof _sv!=='undefined'&&_sv.svcId){
+    const sv=services.find(x=>x.id===_sv.svcId);const vp=sv?.variants[_sv.variantIdx]?.price||0;
+    disp.innerHTML=`Total<br><span style="font-family:'Fraunces',serif;font-size:22px;color:var(--gold)">${INR(vp*qty)}</span>`;
+  } else if(typeof _qs!=='undefined'&&_qs.itemId){
+    const it=items.find(x=>x.id===_qs.itemId);
+    if(it)disp.innerHTML=`Total<br><span style="font-family:'Fraunces',serif;font-size:22px;color:var(--gold)">${INR(it.price*qty)}</span>`;
+  }
+}
+
+// ── QUICK SERVICE ─────────────────────────────────────────────────────────────
+let _sv={svcId:0,variantIdx:0,qty:1,discount:0,method:'PhonePe',step:1};
+function openQuickService(){_sv={svcId:services[0]?.id||0,variantIdx:0,qty:1,discount:0,method:'PhonePe',step:1};renderSVSheet();}
+function openQuickServiceDirect(id){_sv={svcId:id,variantIdx:0,qty:1,discount:0,method:'PhonePe',step:2};renderSVSheet();}
+function renderSVSheet(){
+  const sv=services.find(x=>x.id===_sv.svcId);
+  let html='<div class="sheet-handle"></div>';
+  if(_sv.step===1){
+    // Pick service
+    html+=`<div class="sheet-title">Which service? ✂️</div><div class="qs-item-list">${services.map(s=>`<div class="qs-item-row ${_sv.svcId===s.id?'selected':''}" onclick="_sv.svcId=${s.id};_sv.variantIdx=0;_sv.step=2;renderSVSheet()"><span style="font-size:17px">${s.icon}</span><div style="flex:1;min-width:0"><div class="qs-item-name">${s.name}</div><div class="qs-item-stock">${s.variants.map(v=>v.label).join(' · ')}</div></div><div class="qs-item-price">${INR(s.variants[0].price)}+</div></div>`).join('')}</div><div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri sm" onclick="openAddService()">+ New service</button></div>`;
+  } else if(_sv.step===2){
+    // Pick variant & see price
+    const vp=sv?.variants[_sv.variantIdx]?.price||0;
+    html+=`<div class="sheet-title">${sv?sv.icon+' '+sv.name:'Service'}</div>`;
+    if(sv?.desc)html+=`<div style="font-size:11px;color:var(--text3);margin:-8px 0 10px">${sv.desc}</div>`;
+    html+=`<div class="frow"><label>Which type?</label><div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:2px">${sv?.variants.map((v,idx)=>`<button class="svc-variant ${_sv.variantIdx===idx?'active':''}" onclick="_sv.variantIdx=${idx};renderSVSheet()">${v.label} — ${INR(v.price)}</button>`).join('')||''}</div></div>`;
+    // Material info
+    if(sv?.materialItemId){
+      const mat=items.find(x=>x.id===sv.materialItemId);
+      if(mat)html+=`<div class="note-box" style="margin-bottom:10px">Uses: ${sv.materialQty} × ${mat.name} (${mat.stock} in stock) — will be deducted automatically</div>`;
+    }
+    // Discount
+    html+=`<div class="frow"><label>Discount (optional)</label><div style="display:flex;gap:6px;flex-wrap:wrap">${[0,5,10,15,20].map(d=>`<button class="svc-variant ${_sv.discount===d?'active':''}" onclick="_sv.discount=${d};renderSVSheet()">${d===0?'None':d+'%'}</button>`).join('')}</div></div>`;
+    if(_sv.discount>0){
+      const final=Math.round(vp*(1-_sv.discount/100));
+      html+=`<div class="discount-row"><div class="disc-label">${INR(vp)} − ${_sv.discount}% = </div><div class="disc-final">${INR(final)}</div></div>`;
+    }
+    html+=`<div class="sactions"><button class="btn" onclick="_sv.step=1;renderSVSheet()">← Back</button><button class="btn pri" onclick="_sv.step=3;renderSVSheet()">Next →</button></div>`;
+  } else {
+    // Confirm + pay
+    const vp=sv?.variants[_sv.variantIdx]?.price||0;
+    const final=Math.round(vp*(1-_sv.discount/100));
+    const mat=sv?.materialItemId?items.find(x=>x.id===sv.materialItemId):null;
+    html+=`<div class="sheet-title">Confirm & payment</div>`;
+    html+=`<div style="background:var(--rose-light);border-radius:var(--radius-sm);padding:11px 13px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div style="font-size:14px;font-weight:600">${sv?sv.icon+' '+sv.name:''}</div><div style="font-size:11px;color:var(--text3);margin-top:2px">${sv?.variants[_sv.variantIdx]?.label||''}${_sv.discount>0?' · '+_sv.discount+'% off':''}</div></div>
+        <div style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:#b02040">${INR(final)}</div>
+      </div>
+      ${mat?`<div style="font-size:11px;color:var(--text3);margin-top:8px;padding-top:8px;border-top:1px solid rgba(232,98,122,.12)">Deducting: ${sv.materialQty} × ${mat.name} from stock</div>`:''}
+    </div>`;
+    html+=`<div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.9px;color:var(--text3);margin-bottom:6px">Payment method</div>`;
+    html+=payMethodsHTML(_sv.method);
+    html+=`<div class="sactions"><button class="btn" onclick="_sv.step=2;renderSVSheet()">← Back</button><button class="btn pri" style="height:46px;padding:0 22px;font-size:15px;background:var(--rose);border-color:var(--rose)" onclick="confirmService()">✓ Done! Save</button></div>`;
+  }
+  showSheet(html);
+}
+function confirmService(){
+  const sv=services.find(x=>x.id===_sv.svcId);if(!sv)return;
+  const vp=sv.variants[_sv.variantIdx]?.price||0;
+  const final=Math.round(vp*(1-_sv.discount/100));
+  const label=sv.variants[_sv.variantIdx]?.label||'';
+  const name=sv.name+(label?' — '+label:'');
+  const mat=sv.materialItemId?items.find(x=>x.id===sv.materialItemId):null;
+  const matCost=mat?mat.cost*sv.materialQty:0;
+  mutate(()=>{
+    if(mat){const idx=items.findIndex(x=>x.id===mat.id);if(idx>=0)items[idx].stock=Math.max(0,mat.stock-sv.materialQty);}
+    sales.push({id:nextSaleId++,item:name,qty:1,salePrice:vp,amount:final,cost:matCost,method:_sv.method,note:_sv.discount>0?_sv.discount+'% discount':'',time:tsNow(),type:'service'});
+    addAct('service',name+' — '+INR(final)+' via '+_sv.method+(_sv.discount>0?' ('+_sv.discount+'% off)':''));
+  });
+  closeSheet();showToast('✓ '+sv.icon+' '+sv.name,INR(final));render();
+}
+
+// ── SERVICES PAGE ─────────────────────────────────────────────────────────────
+function renderServices(){
+  let html=`<div class="section-hdr"><div class="sec-label" style="margin:0">Your services</div><button class="btn sm pri" onclick="openAddService()">+ New</button></div>`;
+  if(!services.length){html+='<div class="empty">No services yet. Tap + New to add one.</div>';document.getElementById('services-pad').innerHTML=html;return;}
+  html+=services.map(sv=>{
+    const mat=sv.materialItemId?items.find(x=>x.id===sv.materialItemId):null;
+    return`<div class="svc-card">
+      <div class="svc-hdr">
+        <div><div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">${sv.icon}</span><span class="svc-name">${sv.name}</span></div>${sv.desc?`<div class="svc-meta" style="margin-top:3px">${sv.desc}</div>`:''}</div>
+        <div style="display:flex;gap:4px"><button class="btn xs" onclick="openLogServiceId(${sv.id})" style="background:var(--rose);color:#fff;border-color:var(--rose)">Log</button><button class="btn xs" onclick="openEditService(${sv.id})">✎</button></div>
+      </div>
+      <div class="svc-variants">${sv.variants.map(v=>`<span style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 9px;font-size:11px;font-weight:600">${v.label} · ${INR(v.price)}</span>`).join('')}</div>
+      ${mat?`<div class="svc-meta">Uses: ${sv.materialQty} × ${mat.name}</div>`:'<div class="svc-meta" style="color:var(--text3)">No materials used</div>'}
+    </div>`;}).join('');
+  document.getElementById('services-pad').innerHTML=html;
+}
+function openLogServiceId(id){_sv={svcId:id,variantIdx:0,qty:1,discount:0,method:'PhonePe',step:2};renderSVSheet();}
+function openAddService(){
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">New service</div>
+    <div class="frow"><label>Service name</label><input id="ns-name" placeholder="e.g. Hair Colour"></div>
+    <div class="frow"><label>Icon (emoji)</label><input id="ns-icon" value="✂️" style="width:60px;text-align:center;font-size:18px"></div>
+    <div class="frow"><label>Description (optional)</label><input id="ns-desc" placeholder="e.g. Includes wash & blow-dry"></div>
+    <div id="ns-variants-wrap">
+      <div class="sec-label" style="margin-bottom:6px">Pricing variants</div>
+      <div id="ns-variants"><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px"><input class="nv-label" placeholder="e.g. Basic" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none"><input class="nv-price" type="number" placeholder="Price ₹" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none"></div></div>
+      <button class="btn sm" onclick="addVariantRow()" style="margin-bottom:10px">+ Add variant</button>
+    </div>
+    <div class="frow"><label>Material used from stock (optional)</label><select id="ns-mat"><option value="0">— none —</option>${items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}</select></div>
+    <div class="frow"><label>Qty used per service</label><input id="ns-matqty" type="number" value="1" min="0"></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveNewService()">Save service</button></div>`);}
+function addVariantRow(){const wrap=document.getElementById('ns-variants');if(!wrap)return;const d=document.createElement('div');d.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';d.innerHTML='<input class="nv-label" placeholder="e.g. Premium" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:\'Plus Jakarta Sans\',sans-serif;outline:none"><input class="nv-price" type="number" placeholder="Price ₹" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:\'Plus Jakarta Sans\',sans-serif;outline:none">';wrap.appendChild(d);}
+function saveNewService(){
+  const name=(document.getElementById('ns-name').value||'').trim();if(!name)return;
+  const icon=document.getElementById('ns-icon').value||'✂️';
+  const desc=(document.getElementById('ns-desc').value||'').trim();
+  const matId=parseInt(document.getElementById('ns-mat').value)||0;
+  const matQty=parseInt(document.getElementById('ns-matqty').value)||1;
+  const labels=document.querySelectorAll('.nv-label'),prices=document.querySelectorAll('.nv-price');
+  const variants=[];
+  labels.forEach((l,i)=>{const lv=(l.value||'').trim(),pv=parseInt(prices[i]?.value)||0;if(lv&&pv)variants.push({label:lv,price:pv});});
+  if(!variants.length)variants.push({label:'Standard',price:0});
+  mutate(()=>{services.push({id:nextSvcId++,name,icon,variants,materialItemId:matId,materialQty:matQty,desc});addAct('edit','Added service: '+name);});
+  closeSheet();render();}
+function openEditService(id){
+  const sv=services.find(x=>x.id===id);if(!sv)return;
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Edit — ${sv.name}</div>
+    <div class="frow"><label>Service name</label><input id="es-name" value="${safe(sv.name)}"></div>
+    <div class="frow"><label>Icon</label><input id="es-icon" value="${sv.icon}" style="width:60px;text-align:center;font-size:18px"></div>
+    <div class="frow"><label>Description</label><input id="es-desc" value="${safe(sv.desc||'')}"></div>
+    <div class="sec-label" style="margin-bottom:6px">Variants</div>
+    <div id="es-variants">${sv.variants.map(v=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px"><input class="ev-label" value="${safe(v.label)}" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none"><input class="ev-price" type="number" value="${v.price}" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;outline:none"></div>`).join('')}</div>
+    <button class="btn sm" onclick="addEditVariantRow()" style="margin-bottom:10px">+ Add variant</button>
+    <div class="frow"><label>Material from stock</label><select id="es-mat"><option value="0">— none —</option>${items.map(i=>`<option value="${i.id}" ${sv.materialItemId===i.id?'selected':''}>${i.name}</option>`).join('')}</select></div>
+    <div class="frow"><label>Qty per service</label><input id="es-matqty" type="number" value="${sv.materialQty||1}" min="0"></div>
+    <div class="sactions"><button class="btn danger" onclick="deleteService(${id})">Delete</button><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveEditService(${id})">Save</button></div>`);}
+function addEditVariantRow(){const wrap=document.getElementById('es-variants');if(!wrap)return;const d=document.createElement('div');d.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px';d.innerHTML='<input class="ev-label" placeholder="Label" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:\'Plus Jakarta Sans\',sans-serif;outline:none"><input class="ev-price" type="number" placeholder="Price ₹" style="padding:7px 9px;border:1px solid var(--border-med);border-radius:8px;font-size:12px;background:var(--surface);color:var(--text);font-family:\'Plus Jakarta Sans\',sans-serif;outline:none">';wrap.appendChild(d);}
+function saveEditService(id){
+  const idx=services.findIndex(x=>x.id===id);if(idx<0)return;
+  const name=(document.getElementById('es-name').value||'').trim();if(!name)return;
+  const labels=document.querySelectorAll('.ev-label'),prices=document.querySelectorAll('.ev-price');
+  const variants=[];labels.forEach((l,i)=>{const lv=(l.value||'').trim(),pv=parseInt(prices[i]?.value)||0;if(lv&&pv)variants.push({label:lv,price:pv});});
+  if(!variants.length)return;
+  mutate(()=>{services[idx]={...services[idx],name,icon:document.getElementById('es-icon').value||'✂️',desc:(document.getElementById('es-desc').value||'').trim(),variants,materialItemId:parseInt(document.getElementById('es-mat').value)||0,materialQty:parseInt(document.getElementById('es-matqty').value)||1};addAct('edit','Updated service: '+name);});
+  closeSheet();render();}
+function deleteService(id){
+  const sv=services.find(x=>x.id===id);if(!sv)return;
+  mutate(()=>{services=services.filter(x=>x.id!==id);addAct('edit','Removed service: '+sv.name);});closeSheet();render();}
+
+// ── SALES ─────────────────────────────────────────────────────────────────────
+function renderSales(){
+  const todayAmt=sales.filter(s=>s.time.includes(todayStr())).reduce((s,x)=>s+x.amount,0);
+  const svcAmt=sales.filter(s=>s.type==='service').reduce((s,x)=>s+x.amount,0);
+  let html=`<div class="cards2">
+    <div class="mcard"><div class="mcard-dot"></div><div class="mcard-label">Today</div><div class="mcard-val pos">${INR(todayAmt)}</div></div>
+    <div class="mcard"><div class="mcard-dot"></div><div class="mcard-label">Services total</div><div class="mcard-val" style="color:var(--rose)">${INR(svcAmt)}</div></div>
+  </div>`;
+  if(pending.length){
+    html+=`<div class="inbox-banner"><span style="font-size:20px">📥</span><div><div class="inbox-title">Inbox — ${pending.length} need descriptions</div><div class="inbox-sub">Tap each to match to a sale</div></div></div>`;
+    html+=pending.map(p=>`<div class="pending-card" id="pc-${p.id}"><div class="pending-hdr"><span class="pending-title">${p.type==='credit'?'💳 PhonePe received':'🏪 Purchase'}</span><span class="pending-amt ${p.type}">${p.type==='debit'?'−':'+'}${INR(p.amount)}</span></div><div class="pending-meta">${p.rawDesc} · ${p.time}</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn sm pri" onclick="openMatchPending('${safe(p.id)}')">Add description</button><button class="btn sm danger" onclick="dismissPending('${safe(p.id)}')">Dismiss</button></div></div>`).join('');}
+  html+=`<div class="section-hdr"><div class="sec-label" style="margin:0">All transactions</div><div style="display:flex;gap:5px"><button class="btn sm" onclick="openLogSale()" style="font-size:10px">+ Product</button><button class="btn sm" style="background:var(--rose);color:#fff;border-color:var(--rose);font-size:10px" onclick="openQuickService()">+ Service</button></div></div>`;
+  html+=sales.length?sales.slice().reverse().map((s,idx)=>{
+    const isService=s.type==='service';
+    const methodClass=(s.method||'').toLowerCase()==='phonepe'?'pp':(s.method||'').toLowerCase();
+    return`<div class="sale-row" style="animation-delay:${idx*.03}s">
+      <div class="sale-top"><span class="sale-name">${isService?'✂️ ':''  }${s.item}${(!isService&&s.qty>1)?' ×'+s.qty:''}</span><span class="sale-amt" style="color:${s.type==='purchase'?'var(--rose)':isService?'#b02040':'var(--sage)'}">${s.type==='purchase'?'−':'+'}${INR(s.amount)}</span></div>
+      <div class="sale-meta">
+        <span class="pill ${isService?'service':methodClass}">${isService?'Service':s.method}</span>
+        ${isService&&s.cost>0?`<span style="color:var(--text3)">mat. cost ${INR(s.cost)}</span>`:''}
+        ${isService&&s.salePrice!==s.amount?`<span style="color:var(--text3)">was ${INR(s.salePrice)}</span>`:''}
+        ${s.note?`<span>${s.note}</span>`:''}
+        <span>${s.time}</span>
+      </div>
+    </div>`}).join(''):'<div class="empty">No transactions yet</div>';
+  document.getElementById('sales-pad').innerHTML=html;}
+
+function dismissPending(id){const card=document.getElementById('pc-'+id);if(card){card.classList.add('dismissing');setTimeout(()=>{mutate(()=>{pending=pending.filter(p=>p.id!==id);addAct('edit','Dismissed transaction');});render();},290);}else{mutate(()=>{pending=pending.filter(p=>p.id!==id);});render();}}
+function openMatchPending(id){
+  const p=pending.find(x=>x.id===id);if(!p)return;
+  const isDebit=p.type==='debit';
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">${isDebit?'Log purchase':'Match PhonePe receipt'}</div>
+    <div style="background:${isDebit?'#fde8ec':'var(--sage-light)'};border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:12px;font-size:12px;color:${isDebit?'#b02040':'var(--sage)'}">${p.rawDesc} · ${isDebit?'−':'+'}${INR(p.amount)} · ${p.time}</div>
+    <div class="frow"><label>Description</label><input id="pm-desc" placeholder="e.g. Hair colour service" autocomplete="off"></div>
+    <div class="frow"><label>Link to inventory item (optional)</label><select id="pm-item"><option value="">— none —</option>${items.map(i=>`<option value="${i.id}">${i.name}</option>`).join('')}</select></div>
+    <div class="fgrid"><div class="frow"><label>Qty</label><input id="pm-qty" type="number" value="1" min="0"></div><div class="frow"><label>Amount (₹)</label><input id="pm-amt" type="number" value="${p.amount}"></div></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="savePending('${safe(id)}',${isDebit})">Save</button></div>`);}
+function savePending(id,isDebit){
+  const p=pending.find(x=>x.id===id);if(!p)return;
+  const desc=(document.getElementById('pm-desc').value||'').trim()||p.rawDesc;
+  const itemId=parseInt(document.getElementById('pm-item').value)||0;
+  const qty=parseInt(document.getElementById('pm-qty').value)||1;
+  const amt=parseInt(document.getElementById('pm-amt').value)||p.amount;
+  mutate(()=>{
+    if(itemId){const idx=items.findIndex(x=>x.id===itemId);if(idx>=0){if(isDebit){items[idx].stock+=qty;addAct('restock','Restocked '+qty+' × '+items[idx].name);}else items[idx].stock=Math.max(0,items[idx].stock-qty);}}
+    const it=itemId?items.find(x=>x.id===itemId):null;
+    sales.push({id:nextSaleId++,item:desc,qty,salePrice:it?it.price:0,amount:amt,cost:it?it.cost*qty:0,method:isDebit?'Debit':'PhonePe',note:'',time:p.time,type:isDebit?'purchase':'sale'});
+    addAct(isDebit?'purchase':'sale',(isDebit?'Purchase: ':'Sale: ')+desc+' — '+INR(amt));
+    pending=pending.filter(x=>x.id!==id);
+  });closeSheet();render();}
+
+function openLogSale(){
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Log a product sale ✦</div>
+    <div class="frow"><label>Item sold</label><select id="sl-item" onchange="autofillSale()">${items.filter(i=>i.price>0).map(i=>`<option value="${i.id}">${i.name} (${i.stock} in stock)</option>`).join('')}</select></div>
+    <div class="fgrid"><div class="frow"><label>Quantity</label><input id="sl-qty" type="number" value="1" min="1" oninput="autofillSale()"></div><div class="frow"><label>Price per unit (₹)</label><input id="sl-price" type="number" placeholder="From inventory" oninput="calcSaleAmt()"></div></div>
+    <div class="frow"><label>Total amount (₹)</label><input id="sl-amt" type="number" placeholder="Auto-calculated"></div>
+    <div class="frow"><label>Payment method</label><select id="sl-method"><option>PhonePe</option><option>UPI</option><option>Cash</option><option>Card</option></select></div>
+    <div class="frow"><label>Note (optional)</label><input id="sl-note" placeholder="e.g. bulk order, festival" autocomplete="off"></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveSale()">Save sale</button></div>`);
+  setTimeout(autofillSale,10);}
+function autofillSale(){const sel=document.getElementById('sl-item'),pEl=document.getElementById('sl-price'),aEl=document.getElementById('sl-amt'),qEl=document.getElementById('sl-qty');if(!sel||!pEl||!aEl||!qEl)return;const it=items.find(x=>x.id===parseInt(sel.value));const qty=parseInt(qEl.value)||1;if(it&&!pEl._touched)pEl.value=it.price;if(it)aEl.value=(parseInt(pEl.value)||it.price)*qty;}
+function calcSaleAmt(){const pEl=document.getElementById('sl-price'),aEl=document.getElementById('sl-amt'),qEl=document.getElementById('sl-qty');if(!pEl||!aEl||!qEl)return;pEl._touched=true;aEl.value=(parseInt(pEl.value)||0)*(parseInt(qEl.value)||1);}
+function saveSale(){
+  const itemId=parseInt(document.getElementById('sl-item').value);const qty=parseInt(document.getElementById('sl-qty').value)||1;const price=parseInt(document.getElementById('sl-price').value)||0;const amt=parseInt(document.getElementById('sl-amt').value)||0;const method=document.getElementById('sl-method').value;const note=(document.getElementById('sl-note').value||'').trim();const it=items.find(x=>x.id===itemId);if(!it)return;
+  mutate(()=>{items[items.findIndex(x=>x.id===itemId)].stock=Math.max(0,it.stock-qty);sales.push({id:nextSaleId++,item:it.name,qty,salePrice:price,amount:amt,cost:it.cost*qty,method,note,time:tsNow(),type:'sale'});addAct('sale','Sold '+qty+' × '+it.name+' @ '+INR(price)+' = '+INR(amt));});closeSheet();render();}
+
+// ── P&L ───────────────────────────────────────────────────────────────────────
+function renderPnL(){
+  const allSales=sales.filter(s=>s.type==='sale'),allSvc=sales.filter(s=>s.type==='service'),allPur=sales.filter(s=>s.type==='purchase');
+  const prodRev=allSales.reduce((s,x)=>s+x.amount,0),svcRev=allSvc.reduce((s,x)=>s+x.amount,0);
+  const rev=prodRev+svcRev;
+  const prodCost=allSales.reduce((s,x)=>s+x.cost,0),svcMat=allSvc.reduce((s,x)=>s+x.cost,0);
+  const pur=allPur.reduce((s,x)=>s+x.amount,0);
+  const gross=rev-prodCost-svcMat,gm=rev?Math.round(gross/rev*100):0;
+  const sc=items.reduce((s,i)=>s+i.stock*i.cost,0),sr=items.reduce((s,i)=>s+i.stock*i.price,0);
+  const bm={};[...allSales,...allSvc].forEach(s=>{bm[s.method]=(bm[s.method]||0)+s.amount;});
+  document.getElementById('pnl-pad').innerHTML=`
+    <div class="ptabs">${['today','week','month','all'].map(p=>`<button class="ptab ${pnlPeriod===p?'active':''}" onclick="setPnlPeriod('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}</div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--sage)"></div>
+      <div class="pnl-box-title">Revenue</div>
+      <div class="pnl-line"><span class="pnl-label">Product sales</span><span class="pnl-val pos">${INR(prodRev)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">Services revenue</span><span class="pnl-val" style="color:var(--rose)">${INR(svcRev)}</span></div>
+      ${Object.entries(bm).map(([m,v])=>`<div class="pnl-line"><span class="pnl-label">— ${m}</span><span class="pnl-val">${INR(v)}</span></div>`).join('')}
+      <div class="pnl-total"><span>Total revenue</span><span class="pnl-val pos">${INR(rev)}</span></div>
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--rose)"></div>
+      <div class="pnl-box-title">Costs</div>
+      <div class="pnl-line"><span class="pnl-label">Product cost of goods</span><span class="pnl-val neg">${INR(prodCost)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">Service material costs</span><span class="pnl-val neg">${INR(svcMat)}</span></div>
+      ${pur?`<div class="pnl-line"><span class="pnl-label">Direct purchases</span><span class="pnl-val neg">${INR(pur)}</span></div>`:''}
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--gold)"></div>
+      <div class="pnl-box-title">Gross profit</div>
+      <div class="pnl-total"><span>Gross profit</span><span class="pnl-val" style="color:${gross>=0?'var(--sage)':'var(--rose)'}">${INR(gross)}</span></div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${Math.max(0,gm)}%;background:var(--sage)"></div></div>
+      <div style="font-size:11px;color:var(--text3)">Gross margin: ${gm}%</div>
+    </div>
+    <div class="pnl-box"><div class="pnl-accent" style="background:var(--lavender)"></div>
+      <div class="pnl-box-title">Stock on hand</div>
+      <div class="pnl-line"><span class="pnl-label">At cost price</span><span class="pnl-val">${INR(sc)}</span></div>
+      <div class="pnl-line"><span class="pnl-label">At retail price</span><span class="pnl-val">${INR(sr)}</span></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);text-align:center;padding:4px 0 10px">Service margins are revenue minus material cost only</div>`;}
+function setPnlPeriod(p){pnlPeriod=p;renderPnL();}
+
+// ── INVENTORY ─────────────────────────────────────────────────────────────────
+function renderInventory(){
+  const allCats=[{id:'all',icon:'🏪',label:'All',color:'#888'},...categories];
+  document.getElementById('cat-pane').innerHTML=allCats.map(c=>`<button class="cat-btn ${activeCat===c.id?'active':''}" onclick="setActiveCat('${c.id}')"><span class="cat-btn-icon">${c.icon}</span><span class="cat-btn-lbl">${c.label}</span></button>`).join('')+`<button class="cat-add-btn" onclick="openAddCategory()"><div class="cat-add-c">+</div><span class="cat-add-lbl">New</span></button>`;
+  const filtered=activeCat==='all'?items:items.filter(i=>i.cat===activeCat);
+  document.getElementById('inv-main').innerHTML=`
+    <div class="section-hdr" style="position:sticky;top:0;background:var(--cream);padding:3px 0 8px;z-index:2">
+      <div><span style="font-size:13px;font-weight:600">${activeCat==='all'?'All items':catLabel(activeCat)}</span><span style="font-size:11px;color:var(--text3);margin-left:4px">(${filtered.length})</span></div>
+      <button class="btn pri sm" onclick="openAddItem()">+ Add</button>
+    </div>
+    <input class="search-inp" placeholder="🔍 Search…" oninput="filterInv(this.value)">
+    <div id="inv-rows">${invRows(filtered)}</div>`;}
+function invRows(list){
+  if(!list.length)return'<div class="empty">Nothing here yet ✦</div>';
+  return list.map((i,idx)=>`<div class="inv-row" style="animation-delay:${idx*.04}s">
+    <div class="inv-bar" style="background:${catColor(i.cat)}"></div>
+    <div class="inv-info"><div class="inv-name">${i.name}</div>${i.brand?`<div class="inv-brand">${i.brand}</div>`:''}<div class="inv-meta">${i.price?INR(i.price)+'/'+i.unit:'Material only'}${i.desc?' · '+i.desc.slice(0,20):''}</div></div>
+    <div class="inv-right"><div class="inv-qty">${i.stock}</div><div style="margin-top:3px">${i.stock<=i.low?'<span class="pill low">Low</span>':'<span class="pill ok">OK</span>'}</div></div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-left:5px">
+      <button class="btn xs" onclick="openQuickUpdate(${i.id})">±</button>
+      <button class="btn xs" onclick="openEditItem(${i.id})">✎</button>
+    </div>
+  </div>`).join('');}
+function setActiveCat(id){activeCat=id;renderInventory();}
+function filterInv(q){const base=activeCat==='all'?items:items.filter(i=>i.cat===activeCat);const el=document.getElementById('inv-rows');if(el)el.innerHTML=invRows(base.filter(i=>i.name.toLowerCase().includes(q.toLowerCase())||(i.brand||'').toLowerCase().includes(q.toLowerCase())));}
+function itemFormHTML(i){const e=!!i;return`<div class="fgrid">
+    <div class="frow" style="grid-column:1/-1"><label>Item name</label><input id="f-name" value="${safe(i?i.name:'')}" placeholder="e.g. Gold bangle" autocomplete="off" oninput="showSugg('f-name',itemNameList)"><div class="suggestions" id="f-name-sugg" style="display:none"></div></div>
+    <div class="frow"><label>Brand</label><input id="f-brand" value="${safe(i?i.brand||'':'')}" placeholder="Optional" autocomplete="off" oninput="showSugg('f-brand',brandList)"><div class="suggestions" id="f-brand-sugg" style="display:none"></div></div>
+    <div class="frow"><label>Category</label><select id="f-cat">${categories.map(c=>`<option value="${c.id}" ${i&&i.cat===c.id?'selected':''}>${c.icon} ${c.label}</option>`).join('')}</select></div>
+    <div class="frow"><label>Unit</label><input id="f-unit" value="${safe(i?i.unit:'piece')}" placeholder="piece/set/ml" autocomplete="off" oninput="showSugg('f-unit',unitList)"><div class="suggestions" id="f-unit-sugg" style="display:none"></div></div>
+    <div class="frow"><label>Stock qty</label><input id="f-stock" type="number" value="${i?i.stock:0}" min="0"></div>
+    <div class="frow"><label>Cost price (₹)</label><input id="f-cost" type="number" value="${i?i.cost:0}" min="0"></div>
+    <div class="frow"><label>Selling price (₹)</label><input id="f-price" type="number" value="${i?i.price:0}" min="0" placeholder="0 = material only"></div>
+    <div class="frow"><label>Low stock alert at</label><input id="f-low" type="number" value="${i?i.low:5}" min="1"></div>
+  </div>
+  <div class="frow"><label>Description / notes</label><input id="f-desc" value="${safe(i?i.desc||'':'')}" placeholder="Colour, size…" autocomplete="off" oninput="showSugg('f-desc',descList)"><div class="suggestions" id="f-desc-sugg" style="display:none"></div></div>
+  <div class="sactions">${e?`<button class="btn danger" onclick="deleteItem(${i.id})">Delete</button>`:''}<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveItem(${i?i.id:0})">Save</button></div>`;}
+function openAddItem(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Add new item ✦</div>${itemFormHTML(null)}`);}
+function openEditItem(id){const i=items.find(x=>x.id===id);if(!i)return;showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Edit — ${i.name}</div>${itemFormHTML(i)}`);}
+function saveItem(idNum){
+  const name=(document.getElementById('f-name').value||'').trim();if(!name)return;
+  const obj={name,brand:(document.getElementById('f-brand').value||'').trim(),cat:document.getElementById('f-cat').value,unit:(document.getElementById('f-unit').value||'piece').trim(),stock:parseInt(document.getElementById('f-stock').value)||0,cost:parseInt(document.getElementById('f-cost').value)||0,price:parseInt(document.getElementById('f-price').value)||0,low:parseInt(document.getElementById('f-low').value)||5,desc:(document.getElementById('f-desc').value||'').trim()};
+  mutate(()=>{if(idNum&&idNum>0){const idx=items.findIndex(x=>x.id===idNum);if(idx>=0){items[idx]={...items[idx],...obj};addAct('edit','Updated: '+obj.name);}}else{obj.id=nextItemId++;items.push(obj);addAct('restock','Added: '+obj.name);}});closeSheet();render();}
+function deleteItem(id){const i=items.find(x=>x.id===id);if(!i)return;mutate(()=>{items=items.filter(x=>x.id!==id);addAct('edit','Removed: '+i.name);});closeSheet();render();}
+function openQuickUpdate(id){
+  const i=items.find(x=>x.id===id);if(!i)return;
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Update stock</div>
+    <div style="font-size:12px;color:var(--text3);margin-bottom:12px">${catIcon(i.cat)} ${i.name} — <strong>${i.stock}</strong> ${i.unit}</div>
+    <div class="frow"><label>Action</label><select id="qa"><option value="add">Received / restocked</option><option value="sell">Sold / used</option><option value="set">Set exact qty</option></select></div>
+    <div class="frow"><label>Quantity</label><input id="qq" type="number" value="1" min="0"></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="applyQuick(${id})">Apply</button></div>`);}
+function applyQuick(id){
+  const idx=items.findIndex(x=>x.id===id);if(idx<0)return;
+  const i=items[idx],action=document.getElementById('qa').value,qty=parseInt(document.getElementById('qq').value)||1;
+  mutate(()=>{if(action==='sell'){items[idx].stock=Math.max(0,i.stock-qty);addAct('sale','Used '+qty+' × '+i.name);}else if(action==='add'){items[idx].stock=i.stock+qty;addAct('restock','Restocked '+qty+' × '+i.name);}else{items[idx].stock=qty;addAct('edit','Set '+i.name+' to '+qty);}});closeSheet();render();}
+function openAddCategory(){
+  const emojis=['🌸','💄','🧣','🪡','🛍','🌿','🧴','🪞','💍','🧸','🌺','🎀','👒','🧤'];
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">New category</div>
+    <div class="frow"><label>Name</label><input id="nc-name" placeholder="e.g. Hair care"></div>
+    <div class="frow"><label>Icon</label><div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px">${emojis.map(e=>`<button class="ep" onclick="pickEmoji(this,'${e}')" style="font-size:20px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer">${e}</button>`).join('')}</div><input id="nc-icon" value="🌸" style="width:56px;text-align:center;font-size:17px;border-radius:8px;border:1px solid var(--border-med);padding:6px"></div>
+    <div class="frow"><label>Colour</label><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">${['#7b5ea7','#4a7c6f','#c94060','#c9963a','#185fa5','#1a7a5a','#8a3a52','#b07030'].map(c=>`<div class="cdot" onclick="pickColor(this,'${c}')" style="width:26px;height:26px;border-radius:50%;background:${c};cursor:pointer;outline:2.5px solid transparent;outline-offset:2px;transition:outline .15s"></div>`).join('')}</div><input id="nc-color" value="#7b5ea7" placeholder="#hex"></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveNewCategory()">Add</button></div>`);}
+function pickEmoji(el,e){document.getElementById('nc-icon').value=e;document.querySelectorAll('.ep').forEach(b=>{b.style.background='var(--surface2)';b.style.borderColor='var(--border)';});el.style.background='var(--lavender-light)';el.style.borderColor='var(--lavender)';}
+function pickColor(el,c){document.getElementById('nc-color').value=c;document.querySelectorAll('.cdot').forEach(d=>d.style.outlineColor='transparent');el.style.outlineColor='var(--ink)';}
+function saveNewCategory(){const name=(document.getElementById('nc-name').value||'').trim();if(!name)return;const icon=document.getElementById('nc-icon').value||'◆';const color=document.getElementById('nc-color').value||'#888';const id=name.slice(0,3).toUpperCase().replace(/\s/g,'')+Date.now().toString().slice(-3);mutate(()=>{categories.push({id,icon,label:name,color});});closeSheet();renderInventory();}
+
+// ── SMART DROPDOWNS ───────────────────────────────────────────────────────────
+function showSugg(inputId,list){const input=document.getElementById(inputId);const sugg=document.getElementById(inputId+'-sugg');if(!input||!sugg)return;const val=(input.value||'').trim().toLowerCase();const filtered=list.filter(v=>v&&v.toLowerCase().includes(val)&&v!==input.value);const showCreate=val.length>0&&!list.some(v=>(v||'').toLowerCase()===val);let html=filtered.slice(0,7).map(v=>`<div class="sugg-item" onmousedown="pickSugg(event,'${inputId}','${safe(v)}')">${v}</div>`).join('');if(showCreate)html+=`<div class="sugg-item create" onmousedown="pickSugg(event,'${inputId}','${safe(val)}')">✦ Add: "${val}"</div>`;if(html){sugg.innerHTML=html;sugg.style.display='block';}else sugg.style.display='none';input.onblur=()=>setTimeout(()=>{if(sugg)sugg.style.display='none';},180);}
+function pickSugg(evt,inputId,val){evt.preventDefault();const input=document.getElementById(inputId);if(input){input.value=val;input.dispatchEvent(new Event('change'));}const sugg=document.getElementById(inputId+'-sugg');if(sugg)sugg.style.display='none';if(inputId==='f-name'&&!itemNameList.includes(val))itemNameList.push(val);if(inputId==='f-brand'&&!brandList.includes(val))brandList.push(val);if(inputId==='f-unit'&&!unitList.includes(val))unitList.push(val);}
+
+// ── SHEET ─────────────────────────────────────────────────────────────────────
+function showSheet(html){closeSheet();const bg=document.createElement('div');bg.className='sheet-overlay';bg.id='active-sheet';bg.addEventListener('click',e=>{if(e.target===bg)closeSheet();});const sh=document.createElement('div');sh.className='sheet';sh.innerHTML=html;bg.appendChild(sh);document.getElementById('app').appendChild(bg);}
+function closeSheet(){const el=document.getElementById('active-sheet');if(el)el.remove();}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function showToast(msg,amt){const old=document.getElementById('app-toast');if(old)old.remove();const t=document.createElement('div');t.className='toast';t.id='app-toast';t.innerHTML=`<span style="font-size:16px">✔️</span><span>${msg}</span><span class="toast-amt">${amt}</span>`;document.getElementById('app').appendChild(t);setTimeout(()=>{if(t.parentNode){t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);}},3000);}
+
+// ── VOICE ─────────────────────────────────────────────────────────────────────
+const VP=[{re:/sold?\s+(\d+)\s+(.+?)(?:\s+via\s+(.+?))?$/i,action:'sell'},{re:/sell\s+(\d+)\s+(.+)/i,action:'sell'},{re:/(?:received?|restocked?|got)\s+(\d+)\s+(.+)/i,action:'restock'}];
+function lsim(query,itemName){const qw=query.toLowerCase().split(/\s+/).filter(w=>w.length>1);const iw=itemName.toLowerCase().split(/\s+/).filter(w=>w.length>1);const inItem=qw.filter(w=>itemName.toLowerCase().includes(w)).length;const inQuery=iw.filter(w=>query.toLowerCase().includes(w)).length;return Math.max(inItem/Math.max(qw.length,1),inQuery/Math.max(iw.length,1));}
+function gMethod(s){if(!s)return'Cash';if(/phone\s*pe|pp/i.test(s))return'PhonePe';if(/upi|gpay|paytm/i.test(s))return'UPI';if(/card/i.test(s))return'Card';return'Cash';}
+function matchLocal(t){
+  // Try matching a service name first
+  for(const sv of services){if(t.toLowerCase().includes(sv.name.toLowerCase())){const vIdx=sv.variants.findIndex(v=>t.toLowerCase().includes(v.label.toLowerCase()));return{action:'service',svc:sv,variantIdx:vIdx>=0?vIdx:0};}  }
+  for(const pat of VP){const m=t.match(pat.re);if(m){const qty=parseInt(m[1]);const name=(m[2]||'').trim().replace(/\s+via.+$/i,'');const method=(m[3]||'').trim();const scored=items.map(i=>({i,s:lsim(name,i.name)})).sort((a,b)=>b.s-a.s);const best=scored[0];if(best&&best.s>0.15)return{action:pat.action,item:best.i,qty,method:gMethod(method)};}}
+  return null;
+}
+function showVoiceConfirm(payload){
+  closeVoiceConfirm();
+  const overlay=document.createElement('div');overlay.className='vc-overlay';overlay.id='voice-confirm';
+  if(payload.action==='service'){
+    const sv=payload.svc;const vp=sv.variants[payload.variantIdx]?.price||0;
+    overlay.innerHTML=`<div class="vc-card"><div class="vc-handle"></div><div class="vc-heard">I heard you say…</div><div class="vc-main">${sv.icon} ${sv.name}</div><div class="vc-amount" style="background:var(--rose-light);color:#b02040">${INR(vp)} — ${sv.variants[payload.variantIdx]?.label}</div><div class="vc-sub">Material cost will be deducted from stock automatically</div><div class="vc-btns"><button class="vc-yes" onclick="confirmVoice()">✓ Yes, save!</button><button class="vc-no" onclick="closeVoiceConfirm()">✕ No, redo</button></div></div>`;
+  } else {
+    const isSell=payload.action==='sell';const amt=isSell?payload.item.price*payload.qty:null;
+    overlay.innerHTML=`<div class="vc-card"><div class="vc-handle"></div><div class="vc-heard">I heard you say…</div><div class="vc-main">${isSell?'🛍 Sold':'📦 Restocked'} ${payload.qty} × ${payload.item.name}</div>${isSell?`<div class="vc-amount">= ${INR(amt)}</div>`:`<div class="vc-amount restock">${payload.qty} added to stock</div>`}<div class="vc-sub">${isSell?`Payment: <strong>${payload.method}</strong> · Stock: ${payload.item.stock} → <strong>${Math.max(0,payload.item.stock-payload.qty)}</strong>`:`Stock: ${payload.item.stock} → <strong>${payload.item.stock+payload.qty}</strong>`}</div><div class="vc-btns"><button class="vc-yes" onclick="confirmVoice()">✓ Yes, save!</button><button class="vc-no" onclick="closeVoiceConfirm()">✕ No, redo</button></div></div>`;
+  }
+  document.getElementById('app').appendChild(overlay);window._pendingVoice=payload;
+}
+function confirmVoice(){if(!window._pendingVoice)return;applyVoice(window._pendingVoice);closeVoiceConfirm();}
+function closeVoiceConfirm(){const el=document.getElementById('voice-confirm');if(el)el.remove();window._pendingVoice=null;}
+function applyVoice(payload){
+  if(payload.action==='service'){
+    const sv=payload.svc;const vp=sv.variants[payload.variantIdx]?.price||0;const mat=sv.materialItemId?items.find(x=>x.id===sv.materialItemId):null;
+    mutate(()=>{if(mat){const idx=items.findIndex(x=>x.id===mat.id);if(idx>=0)items[idx].stock=Math.max(0,mat.stock-sv.materialQty);}sales.push({id:nextSaleId++,item:sv.name+' — '+sv.variants[payload.variantIdx]?.label,qty:1,salePrice:vp,amount:vp,cost:mat?mat.cost*sv.materialQty:0,method:'Cash',note:'via voice',time:tsNow(),type:'service'});addAct('service','Voice: '+sv.name+' — '+INR(vp));});
+    setVS('✓ '+sv.name+' — '+INR(vp));render();return;
+  }
+  const idx=items.findIndex(x=>x.id===payload.item.id);if(idx<0)return;
+  mutate(()=>{if(payload.action==='sell'){items[idx].stock=Math.max(0,payload.item.stock-payload.qty);const amt=payload.item.price*payload.qty;sales.push({id:nextSaleId++,item:payload.item.name,qty:payload.qty,salePrice:payload.item.price,amount:amt,cost:payload.item.cost*payload.qty,method:payload.method||'Cash',note:'via voice',time:tsNow(),type:'sale'});addAct('sale','Voice: sold '+payload.qty+' × '+payload.item.name+' = '+INR(amt));setVS('✓ Sold '+payload.qty+' × '+payload.item.name+' — '+INR(amt));}else{items[idx].stock=payload.item.stock+payload.qty;addAct('restock','Voice: restocked '+payload.qty+' × '+payload.item.name);setVS('✓ Restocked '+payload.qty+' × '+payload.item.name);}});
+  render();setTimeout(()=>{_voiceMsg='';setVS('Say "sold 2 gold bangles" or "hair colour premium"');},5000);
+}
+function handleMicTap(){if(isInAppBrowser){showSafariHelp();return;}if(!hasVoice){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Voice not available</div><div class="warn-box">Please open this app in Safari on iPhone for voice commands.</div><div class="sactions"><button class="btn pri" onclick="closeSheet()">OK</button></div>`);return;}toggleVoice();}
+async function toggleVoice(){
+  if(listening){if(recognition)recognition.stop();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){handleMicTap();return;}
+  recognition=new SR();recognition.lang='en-IN';recognition.continuous=false;recognition.interimResults=false;
+  recognition.onstart=()=>{listening=true;document.getElementById('globalMic').classList.add('listening');setVS('<span class="spinner"></span> Listening…');};
+  recognition.onerror=(e)=>{stopListening();if(e.error==='not-allowed')setVS('Mic access denied. Allow in Settings → Safari → Microphone.');else if(e.error==='no-speech')setVS('Nothing heard. Try again.');else setVS('Could not start mic. Try again.');};
+  recognition.onend=()=>stopListening();
+  recognition.onresult=async(e)=>{
+    const t=e.results[0][0].transcript;stopListening();setVS('<span class="spinner"></span> "'+t+'" — matching…');
+    const local=matchLocal(t);if(local){showVoiceConfirm({...local,transcript:t});setVS('Is this right? ↓');return;}
+    try{
+      const names=items.map(i=>i.name+'(id:'+i.id+')').join(',');const svcNames=services.map(s=>s.name+'(id:'+s.id+')').join(',');
+      const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:200,messages:[{role:'user',content:`Items: ${names}. Services: ${svcNames}. Command: "${t}". Return ONLY JSON: {"action":"sell|restock|service|unknown","itemId":0,"serviceId":0,"qty":1,"variantIdx":0,"method":"PhonePe|Cash|UPI|Card"}`}]})});
+      const data=await resp.json();const raw=data.content.map(c=>c.text||'').join('');const result=JSON.parse(raw.replace(/```json|```/g,'').trim());
+      if(result.action==='service'){const sv=services.find(x=>x.id===result.serviceId);if(sv){showVoiceConfirm({action:'service',svc:sv,variantIdx:result.variantIdx||0,transcript:t});setVS('Is this right? ↓');return;}}
+      if(result.action==='unknown'){openVoiceFallback(t);return;}
+      const it=items.find(x=>x.id===result.itemId);if(!it){openVoiceFallback(t);return;}
+      showVoiceConfirm({action:result.action,item:it,qty:result.qty||1,method:result.method||'Cash',transcript:t});setVS('Is this right? ↓');
+    }catch(err){console.warn('API error:',err);openVoiceFallback(t);}};
+  try{recognition.start();}catch(err){stopListening();setVS('Mic blocked. Check browser permissions.');}}
+function openVoiceFallback(transcript){
+  setVS('Could not match — fill in below ↓');
+  const isRestock=/receiv|restock|got|added/i.test(transcript);
+  const best=items.map(i=>({i,s:lsim(transcript,i.name)})).sort((a,b)=>b.s-a.s)[0];
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Heard: "${transcript}"</div><div class="note-box" style="font-size:12px">Wasn't sure what you meant. Fill in below:</div>
+    <div class="frow"><label>Type</label><select id="vf-type"><option value="sell">🛍 Product sold</option><option value="service">✂️ Service done</option><option value="restock" ${isRestock?'selected':''}>📦 Restocked</option></select></div>
+    <div id="vf-item-row" class="frow"><label>Item</label><select id="vf-item">${items.map(i=>`<option value="${i.id}" ${best&&best.i.id===i.id?'selected':''}>${i.name} (${i.stock})</option>`).join('')}</select></div>
+    <div id="vf-svc-row" class="frow" style="display:none"><label>Service</label><select id="vf-svc">${services.map(s=>`<option value="${s.id}">${s.icon} ${s.name}</option>`).join('')}</select></div>
+    <div class="fgrid"><div class="frow"><label>Qty</label><input id="vf-qty" type="number" value="${transcript.match(/(\d+)/)?parseInt(transcript.match(/(\d+)/)[1]):1}" min="1"></div><div class="frow"><label>Payment</label><select id="vf-method"><option>Cash</option><option>PhonePe</option><option>UPI</option><option>Card</option></select></div></div>
+    <div class="sactions"><button class="btn" onclick="closeSheet();setVS('Tap the mic to try again')">Cancel</button><button class="btn pri" onclick="saveVoiceFallback()">Save ✓</button></div>`);}
+function saveVoiceFallback(){
+  const type=document.getElementById('vf-type').value;
+  if(type==='service'){const sv=services.find(x=>x.id===parseInt(document.getElementById('vf-svc').value));if(sv){applyVoice({action:'service',svc:sv,variantIdx:0});closeSheet();return;}}
+  const itemId=parseInt(document.getElementById('vf-item').value);const qty=parseInt(document.getElementById('vf-qty').value)||1;const method=document.getElementById('vf-method').value;const it=items.find(x=>x.id===itemId);if(!it)return;
+  applyVoice({action:type==='restock'?'restock':'sell',item:it,qty,method});closeSheet();}
+function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
+function setVS(msg){_voiceMsg=msg;const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
+
+// ── CLOCK ─────────────────────────────────────────────────────────────────────
+function updateClock(){const cl=document.getElementById('clock');if(cl)cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
+updateClock();setInterval(updateClock,30000);
+render();
+</script>
+</body>
+</html>
