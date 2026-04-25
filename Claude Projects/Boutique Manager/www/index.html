@@ -243,6 +243,19 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);over
 .toast{position:absolute;bottom:80px;left:16px;right:16px;background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:10px;z-index:80;font-size:13px;font-weight:500;animation:toast-in .3s cubic-bezier(.34,1.3,.64,1);box-shadow:0 4px 20px rgba(26,10,46,.3)}
 @keyframes toast-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .toast-amt{font-family:'Fraunces',serif;font-size:17px;color:var(--gold);margin-left:auto}
+/* ── SETTINGS BTN ── */
+.settings-btn{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:rgba(255,255,255,.55);font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background var(--tr);-webkit-appearance:none;flex-shrink:0}
+.settings-btn:active{background:rgba(255,255,255,.22)}
+/* ── ITEM PHOTO ── */
+.item-photo{width:40px;height:40px;border-radius:9px;object-fit:cover;flex-shrink:0}
+.item-photo-placeholder{width:40px;height:40px;border-radius:9px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.photo-preview{width:64px;height:64px;border-radius:11px;object-fit:cover;border:1px solid var(--border)}
+.photo-placeholder{width:64px;height:64px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:26px;border:1px solid var(--border)}
+/* ── SETTINGS SHEET ── */
+.setting-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:13px 14px;margin-bottom:9px}
+.setting-row{display:flex;justify-content:space-between;align-items:center}
+.setting-label{font-size:13px;font-weight:600}
+.setting-sub{font-size:11px;color:var(--text3);margin-top:2px}
 </style>
 </head>
 <body>
@@ -254,7 +267,10 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);over
         <div class="brand-name"><em>Beauty</em> &amp; Beads</div>
         <div class="brand-sub" id="hdr-sub">Your business dashboard</div>
       </div>
-      <button class="mic-btn" id="globalMic" onclick="handleMicTap()">🎙</button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="settings-btn" onclick="openSettings()" title="Settings">⚙️</button>
+        <button class="mic-btn" id="globalMic" onclick="handleMicTap()">🎙</button>
+      </div>
     </div>
   </div>
   <div id="safari-banner" style="display:none" class="safari-banner" onclick="showSafariHelp()">
@@ -279,6 +295,9 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;color:var(--text);over
 <script>
 // ── API KEY — replace with your Anthropic key; never commit a real key to a public repo ──
 const API_KEY = '';   // set your key here
+
+// ── NATIVE CONTEXT DETECTION ──────────────────────────────────────────────────
+const isNative = !!(window.Capacitor?.isNativePlatform?.());
 
 const INR=n=>'₹'+Math.round(n).toLocaleString('en-IN');
 const tsNow=()=>new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})+', '+new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
@@ -741,6 +760,10 @@ function renderPnL(){
   const bm={};[...allSales,...allSvc].forEach(s=>{bm[s.method]=(bm[s.method]||0)+s.amount;});
   document.getElementById('pnl-pad').innerHTML=`
     <div class="ptabs">${['today','week','month','all'].map(p=>`<button class="ptab ${pnlPeriod===p?'active':''}" onclick="setPnlPeriod('${p}')">${p.charAt(0).toUpperCase()+p.slice(1)}</button>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:13px">
+      <button class="btn" style="height:40px;gap:6px" onclick="exportAndShare('sales')"><span>📊</span>Export Sales</button>
+      <button class="btn" style="height:40px;gap:6px" onclick="exportAndShare('inventory')"><span>📦</span>Export Stock</button>
+    </div>
     <div class="pnl-box"><div class="pnl-accent" style="background:var(--sage)"></div>
       <div class="pnl-box-title">Revenue</div>
       <div class="pnl-line"><span class="pnl-label">Product sales</span><span class="pnl-val pos">${INR(prodRev)}</span></div>
@@ -784,6 +807,7 @@ function invRows(list){
   if(!list.length)return'<div class="empty">Nothing here yet ✦</div>';
   return list.map((i,idx)=>`<div class="inv-row" style="animation-delay:${idx*.04}s">
     <div class="inv-bar" style="background:${catColor(i.cat)}"></div>
+    ${i.photo?`<img class="item-photo" src="${i.photo}" alt="${i.name}">`:`<div class="item-photo-placeholder">${catIcon(i.cat)}</div>`}
     <div class="inv-info"><div class="inv-name">${i.name}</div>${i.brand?`<div class="inv-brand">${i.brand}</div>`:''}<div class="inv-meta">${i.price?INR(i.price)+'/'+i.unit:'Material only'}${i.desc?' · '+i.desc.slice(0,20):''}</div></div>
     <div class="inv-right"><div class="inv-qty">${i.stock}</div><div style="margin-top:3px">${i.stock<=i.low?'<span class="pill low">Low</span>':'<span class="pill ok">OK</span>'}</div></div>
     <div style="display:flex;flex-direction:column;gap:4px;margin-left:5px">
@@ -804,6 +828,7 @@ function itemFormHTML(i){const e=!!i;return`<div class="fgrid">
     <div class="frow"><label>Low stock alert at</label><input id="f-low" type="number" value="${i?i.low:5}" min="1"></div>
   </div>
   <div class="frow"><label>Description / notes</label><input id="f-desc" value="${safe(i?i.desc||'':'')}" placeholder="Colour, size…" autocomplete="off" oninput="showSugg('f-desc',descList)"><div class="suggestions" id="f-desc-sugg" style="display:none"></div></div>
+  ${e?`<div class="frow" style="grid-column:1/-1"><label>Product photo</label><div style="display:flex;align-items:center;gap:12px;margin-top:2px">${i.photo?`<img class="photo-preview" src="${i.photo}" alt="photo"><button class="btn sm danger" onclick="removeItemPhoto(${i.id})">Remove</button>`:`<div class="photo-placeholder">${catIcon(i.cat)}</div>`}<button class="btn sm" onclick="takeItemPhoto(${i.id})">📷 ${i.photo?'Change':'Add photo'}</button></div></div>`:''}
   <div class="sactions">${e?`<button class="btn danger" onclick="deleteItem(${i.id})">Delete</button>`:''}<button class="btn" onclick="closeSheet()">Cancel</button><button class="btn pri" onclick="saveItem(${i?i.id:0})">Save</button></div>`;}
 function openAddItem(){showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Add new item ✦</div>${itemFormHTML(null)}`);}
 function openEditItem(id){const i=items.find(x=>x.id===id);if(!i)return;showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Edit — ${i.name}</div>${itemFormHTML(i)}`);}
@@ -919,10 +944,97 @@ function saveVoiceFallback(){
 function stopListening(){listening=false;const m=document.getElementById('globalMic');if(m)m.classList.remove('listening');}
 function setVS(msg){_voiceMsg=msg;const el=document.getElementById('voice-status');if(el)el.innerHTML=msg;}
 
+// ── CAMERA ───────────────────────────────────────────────────────────────────
+async function takeItemPhoto(itemId){
+  if(!isNative){showToast('📷 Camera is only available in the Android app','');return;}
+  try{
+    const {Camera}=window.Capacitor.Plugins;
+    const perm=await Camera.requestPermissions({permissions:['camera']});
+    if(perm.camera!=='granted'){showToast('Camera permission denied — allow in Settings','');return;}
+    const image=await Camera.getPhoto({quality:50,allowEditing:false,resultType:'base64',source:'PROMPT',width:400,height:400,correctOrientation:true});
+    mutate(()=>{const idx=items.findIndex(x=>x.id===itemId);if(idx>=0)items[idx].photo='data:image/jpeg;base64,'+image.base64String;});
+    closeSheet();render();showToast('📷 Photo saved','');
+  }catch(e){if(e.message&&!e.message.includes('cancelled')&&!e.message.includes('No image'))showToast('Camera error: '+e.message,'');}}
+function removeItemPhoto(itemId){
+  mutate(()=>{const idx=items.findIndex(x=>x.id===itemId);if(idx>=0)delete items[idx].photo;});
+  closeSheet();render();}
+
+// ── LOCAL NOTIFICATIONS ───────────────────────────────────────────────────────
+let _notifsInited=false;
+async function initNotifications(){
+  if(_notifsInited||!isNative||!window.Capacitor?.Plugins?.LocalNotifications)return;
+  _notifsInited=true;
+  try{
+    const {LocalNotifications}=window.Capacitor.Plugins;
+    await LocalNotifications.createChannel({id:'bb-daily',name:'Daily Summary',importance:3,vibration:true,sound:'default'});
+    const perm=await LocalNotifications.requestPermissions();
+    if(perm.display==='granted')scheduleEndOfDayNotification();
+  }catch(e){console.warn('Notifications init:',e);}}
+async function scheduleEndOfDayNotification(){
+  if(!isNative||!window.Capacitor?.Plugins?.LocalNotifications)return;
+  try{
+    const {LocalNotifications}=window.Capacitor.Plugins;
+    await LocalNotifications.cancel({notifications:[{id:1001}]});
+    const now=new Date();
+    const at=new Date(now.getFullYear(),now.getMonth(),now.getDate(),20,0,0);
+    if(at<=now)at.setDate(at.getDate()+1);
+    const todayTotal=sales.filter(s=>inPeriod(s.time,'today')).reduce((s,x)=>s+x.amount,0);
+    const todayCount=sales.filter(s=>inPeriod(s.time,'today')).length;
+    const body=todayCount>0?`${todayCount} transaction${todayCount!==1?'s':''} · ${INR(todayTotal)} earned today ✨`:'No transactions logged today yet';
+    await LocalNotifications.schedule({notifications:[{id:1001,title:'Beauty & Beads — Daily Summary',body,schedule:{at,repeats:false},channelId:'bb-daily',smallIcon:'ic_stat_icon_config_sample'}]});
+  }catch(e){console.warn('Schedule notification:',e);}}
+
+// ── EXPORT & SHARE ────────────────────────────────────────────────────────────
+async function exportAndShare(type){
+  let csv,filename,title;
+  const q=s=>(s||'').replace(/"/g,'""');
+  if(type==='sales'){
+    csv='Date,Item,Qty,Sale Price,Amount,Cost,Method,Note,Type\n'+sales.slice().reverse().map(s=>`"${q(s.time)}","${q(s.item)}",${s.qty},${s.salePrice},${s.amount},${s.cost},"${s.method}","${q(s.note)}","${s.type}"`).join('\n');
+    filename='beauty-beads-sales.csv';title='Sales Export';
+  }else{
+    csv='Name,Brand,Category,Stock,Cost Price,Selling Price,Unit,Low Alert,Description\n'+items.map(i=>`"${q(i.name)}","${q(i.brand)}","${catLabel(i.cat)}",${i.stock},${i.cost},${i.price},"${i.unit}",${i.low},"${q(i.desc)}"`).join('\n');
+    filename='beauty-beads-inventory.csv';title='Inventory Export';
+  }
+  if(isNative&&window.Capacitor?.Plugins?.Filesystem&&window.Capacitor?.Plugins?.Share){
+    try{
+      const {Filesystem,Share}=window.Capacitor.Plugins;
+      await Filesystem.writeFile({path:filename,data:csv,directory:'CACHE',encoding:'utf8'});
+      const r=await Filesystem.getUri({path:filename,directory:'CACHE'});
+      await Share.share({title,url:r.uri,dialogTitle:'Share '+title});
+    }catch(e){console.warn('Share error:',e);showToast('Share failed','');}
+  }else{
+    const blob=new Blob([csv],{type:'text/csv'});const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
+    showToast('✓ Downloaded '+filename,'');}}
+
+// ── SETTINGS SHEET ────────────────────────────────────────────────────────────
+function openSettings(){
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Settings</div>
+    <div class="sec-label" style="margin-bottom:9px">Export & share</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+      <button class="btn" style="height:54px;flex-direction:column;gap:3px" onclick="exportAndShare('sales')"><span style="font-size:19px">📊</span><span style="font-size:11px">Sales CSV</span></button>
+      <button class="btn" style="height:54px;flex-direction:column;gap:3px" onclick="exportAndShare('inventory')"><span style="font-size:19px">📦</span><span style="font-size:11px">Stock CSV</span></button>
+    </div>
+    <div class="sec-label" style="margin-bottom:9px">Notifications</div>
+    <div class="setting-card" style="margin-bottom:16px">
+      <div class="setting-row">
+        <div><div class="setting-label">Daily summary</div><div class="setting-sub">Sent at 8 PM with today's revenue</div></div>
+        <button class="btn sm pri" onclick="scheduleEndOfDayNotification();showToast('✓ Scheduled for 8 PM today','');closeSheet()">${isNative?'Enable':'App only'}</button>
+      </div>
+    </div>
+    <div class="sec-label" style="margin-bottom:9px">Danger zone</div>
+    <button class="btn danger" style="width:100%;height:44px;justify-content:center" onclick="confirmClearAll()">🗑 Clear all data</button>`);}
+function confirmClearAll(){
+  showSheet(`<div class="sheet-handle"></div><div class="sheet-title">Clear all data?</div>
+    <div class="warn-box">This permanently deletes all items, sales, services and categories. There is no undo.</div>
+    <div class="sactions"><button class="btn" onclick="closeSheet()">Cancel</button><button class="btn danger" onclick="clearAllData()">Yes, delete everything</button></div>`);}
+function clearAllData(){localStorage.clear();location.reload();}
+
 // ── CLOCK ─────────────────────────────────────────────────────────────────────
 function updateClock(){const cl=document.getElementById('clock');if(cl)cl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});}
 updateClock();setInterval(updateClock,30000);
 render();
+setTimeout(initNotifications,1500);
 </script>
 </body>
 </html>
