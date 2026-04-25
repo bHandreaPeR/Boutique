@@ -1,0 +1,12 @@
+node_modules/
+android/build/
+android/.gradle/
+android/app/build/
+android/local.properties
+.DS_Store
+*.apk
+*.aab
+# Keep the release APK we explicitly add
+!beauty-beads-v*.apk
+.env
+.env.local
