@@ -1,0 +1,27 @@
+{
+  "name": "boutique-manager",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "sync": "cp index.html manifest.json www/ && npx cap sync",
+    "dev": "npm run sync && npx browser-sync start --server www --port 3000 --host 0.0.0.0 --no-open --watch",
+    "build:android": "npm run sync && cd android && ./gradlew assembleDebug",
+    "build:release": "npm run sync && cd android && ./gradlew assembleRelease"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.3.1",
+    "@capacitor/camera": "^8.1.0",
+    "@capacitor/cli": "^8.3.1",
+    "@capacitor/core": "^8.3.1",
+    "@capacitor/filesystem": "^8.1.2",
+    "@capacitor/local-notifications": "^8.0.2",
+    "@capacitor/share": "^8.0.1"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.4"
+  }
+}

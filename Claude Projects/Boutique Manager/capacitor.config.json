@@ -1,0 +1,21 @@
+{
+  "appId": "com.beautyandbead.manager",
+  "appName": "Beauty & Beads",
+  "webDir": "www",
+  "server": {
+    "url": "http://192.168.0.6:3000",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#1a0a2e",
+      "showSpinner": false
+    }
+  }
+}
